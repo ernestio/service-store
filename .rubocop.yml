@@ -1,0 +1,44 @@
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Style/Encoding:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
+Documentation:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 25
+
+AllCops:
+  Exclude:
+    - 'config.ru'
+
+# Disable metrics bellow once the library is cleaned up
+
+Metrics/MethodLength:
+  Max: 65
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+AbcSize:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/LeadingCommentSpace:
+  Enabled: false
+
+Style/Next:
+  Enabled: false

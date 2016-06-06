@@ -1,0 +1,124 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ernest.local/clients/client_id
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      X-Auth-Token:
+      - 67f8e6f1a8d6dfbe734c104f35c86979
+  response:
+    status:
+      code: 200
+      message: 'All good '
+    headers:
+      Server:
+      - nginx/1.4.6 (Ubuntu)
+      Date:
+      - Thu, 24 Mar 2016 10:31:10 GMT
+      Content-Type:
+      - text/plain
+      Content-Length:
+      - '2243'
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"client_id": "client_id", "client_name": "supu" }'
+    http_version: 
+  recorded_at: Thu, 24 Mar 2016 10:31:10 GMT
+- request:
+    method: get
+    uri: https://ernest.local/datacenters/search?name=d1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      X-Auth-Token:
+      - e49a1dad17f405acf707c3eef3d8618b
+  response:
+    status:
+      code: 404
+      message: 'Not Found '
+    headers:
+      Server:
+      - nginx/1.4.6 (Ubuntu)
+      Date:
+      - Thu, 24 Mar 2016 10:41:07 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '0'
+      Connection:
+      - keep-alive
+      X-Content-Type-Options:
+      - nosniff
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 24 Mar 2016 10:41:07 GMT
+- request:
+    method: delete
+    uri: http://127.0.0.1:21000/service
+    body:
+      encoding: UTF-8
+      string: '{"id":"e828da34-c49e-4457-97b0-a31e9e0e4c07","client":{"client_id":"client_id","client_name":"supu"},"datacenter":null,"previous":{"datacenters":{"items":[{"name":"d1"}]}}}'
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 400
+      message: Bad Request
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+      X-Content-Type-Options:
+      - nosniff
+      Date:
+      - Thu, 24 Mar 2016 10:41:07 GMT
+      Content-Length:
+      - '35'
+    body:
+      encoding: UTF-8
+      string: |
+        Datacenter name should not be null
+    http_version: 
+  recorded_at: Thu, 24 Mar 2016 10:41:07 GMT
+- request:
+    method: delete
+    uri: http://127.0.0.1:21000/service/e828da34-c49e-4457-97b0-a31e9e0e4c07
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 19 Apr 2016 07:41:17 GMT
+      Content-Length:
+      - '0'
+      Content-Type:
+      - text/plain; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Tue, 19 Apr 2016 07:41:17 GMT
+recorded_with: VCR 2.9.3
