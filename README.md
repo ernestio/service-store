@@ -1,6 +1,6 @@
 # Service Store
 
-It manages all ernest service storage through a public exposed Rest API
+It manages all ernest service storage through a public Nats API
 
 ## Build status
 
@@ -10,14 +10,38 @@ It manages all ernest service storage through a public exposed Rest API
 ## Installation
 
 ```
+make deps
 make install
 ```
 
 ## Running Tests
 
 ```
+make deps
 make test
 ```
+
+## Endpoints
+
+You have available the nats endpoints:
+
+###service.get
+It receives as input a valid service with only the id or name as required fields. It returns a valid service.
+
+###service.del
+It receives as input a valid service with only the id as required field. And it deletes the row if it can find it.
+
+###service.set
+It receives as input a valid service with id or not, and it will create or update the service with the given fields.
+
+###service.find
+It receives as input a valid service, and it will do a search on the database with the given fields.
+
+###service.get.mapping
+It receives as input a valid service with only the id or name as required fields. It returns a valid service.
+
+###service.set.mapping
+It receives as input a valid service with id, and it will update the service with the mapping field.
 
 ## Contributing
 
@@ -32,7 +56,7 @@ relevant unit tests.
 ## Versioning
 
 For transparency into our release cycle and in striving to maintain backward
-compatibility, this project is maintained under [the Semantic Versioning guidelines](http://semver.org/).
+compatibility, this project is maintained under [the Semantic Versioning guidelines](http://semver.org/). 
 
 ## Copyright and License
 
