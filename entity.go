@@ -106,7 +106,7 @@ func (e *Entity) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool {
 }
 
 // Update : It will update the current entity with the input []byte
-func (e *Entity) Update(body []byte) {
+func (e *Entity) Update(body []byte) error {
 	e.MapInput(body)
 	stored := Entity{}
 	db.Where("uuid = ?", e.Uuid).First(&stored)
@@ -124,14 +124,20 @@ func (e *Entity) Update(body []byte) {
 
 	db.Save(&stored)
 	e = &stored
+
+	return nil
 }
 
 // Delete : Will delete from database the current Entity
-func (e *Entity) Delete() {
+func (e *Entity) Delete() error {
 	db.Unscoped().Delete(&e)
+
+	return nil
 }
 
 // Save : Persists current entity on database
-func (e *Entity) Save() {
+func (e *Entity) Save() error {
 	db.Save(&e)
+
+	return nil
 }
