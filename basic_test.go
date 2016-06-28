@@ -167,7 +167,7 @@ func TestGetHandler(t *testing.T) {
 		Convey("Given services exist on the database", func() {
 			createEntities(20)
 			Convey("Then I should get a list of services", func() {
-				msg, _ := n.Request("service.find", []byte(`{}`), time.Second)
+				msg, _ := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
 				list := []Entity{}
 				json.Unmarshal(msg.Data, &list)
 				So(len(list), ShouldEqual, 20)

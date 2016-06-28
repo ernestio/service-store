@@ -39,7 +39,15 @@ func (Entity) TableName() string {
 // will perform a search on the database
 func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
-	db.Order("version desc").Find(&entities)
+	if e.Name != "" && e.GroupID != 0 {
+		db.Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+	} else {
+		if e.Name != "" {
+			db.Where("name = ?", e.Name).Order("version desc").Find(&entities)
+		} else if e.GroupID != 0 {
+			db.Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+		}
+	}
 
 	list := make([]interface{}, len(entities))
 	for i, s := range entities {

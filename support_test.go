@@ -9,7 +9,7 @@ import (
 )
 
 func setupTestSuite() {
-	db.Where("true = true").Unscoped().Delete(Entity{})
+	db.Unscoped().Delete(Entity{})
 }
 
 func createEntities(n int) {
