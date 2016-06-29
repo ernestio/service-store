@@ -14,17 +14,17 @@ import (
 
 // Entity : the database mapped entity
 type Entity struct {
-	ID           uint   `json:"-" gorm:"primary_key"`
-	Uuid         string `json:"id"`
-	GroupID      uint   `json:"group_id"`
-	DatacenterID uint   `json:"datacenter_id"`
-	Name         string `json:"name"`
-	Type         string `json:"type"`
-	Version      string `json:"version"`
-	Status       string `json:"status"`
-	Options      string `json:"options"`
-	Definition   string `json:"definition"`
-	Mapping      string `json:"mapping" gorm:"type:text;"`
+	ID           uint      `json:"-" gorm:"primary_key"`
+	Uuid         string    `json:"id"`
+	GroupID      uint      `json:"group_id"`
+	DatacenterID uint      `json:"datacenter_id"`
+	Name         string    `json:"name"`
+	Type         string    `json:"type"`
+	Version      time.Time `json:"version"`
+	Status       string    `json:"status"`
+	Options      string    `json:"options"`
+	Definition   string    `json:"definition"`
+	Mapping      string    `json:"mapping" gorm:"type:text;"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    *time.Time `json:"-" sql:"index"`
