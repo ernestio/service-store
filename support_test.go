@@ -6,6 +6,7 @@ package main
 
 import (
 	"strconv"
+	"time"
 )
 
 func setupTestSuite() {
@@ -22,7 +23,7 @@ func createEntities(n int) {
 			GroupID:      1,
 			DatacenterID: 1,
 			Type:         "type",
-			Version:      "0.0.1",
+			Version:      time.Now(),
 			Status:       "in_progress",
 			Options:      "options",
 			Definition:   "definition",
