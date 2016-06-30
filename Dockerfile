@@ -7,4 +7,4 @@ WORKDIR /go/src/github.com/ernestio/service-store
 
 RUN make deps && go install
 
-ENTRYPOINT /go/bin/service-store
+ENTRYPOINT ./entrypoint.sh
