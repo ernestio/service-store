@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"time"
-
 	"github.com/nats-io/nats"
 	"github.com/r3labs/natsdb"
 )
@@ -49,9 +48,13 @@ func (e *Entity) Find() []interface{} {
 		}
 	}
 
-	list := make([]interface{}, len(entities))
-	for i, s := range entities {
-		list[i] = s
+	var list []interface{}
+	prev := ""
+	for _, s := range entities {
+		if prev != s.Name {
+			list = append(list, s)
+		}
+		prev = s.Name
 	}
 
 	return list
