@@ -138,7 +138,7 @@ func (e *Entity) Update(body []byte) error {
 
 // Delete : Will delete from database the current Entity
 func (e *Entity) Delete() error {
-	db.Unscoped().Delete(&e)
+	db.Unscoped().Where("name = ?", e.Name).Delete(Entity{})
 
 	return nil
 }
