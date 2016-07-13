@@ -41,7 +41,11 @@ func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
 	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition"
 	if e.Name != "" && e.GroupID != 0 {
-		db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+		if e.Uuid != "" {
+			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.Uuid).Order("version desc").Find(&entities)
+		} else {
+			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+		}
 	} else {
 		if e.Name != "" {
 			db.Select(fields).Where("name = ?", e.Name).Order("version desc").Find(&entities)
