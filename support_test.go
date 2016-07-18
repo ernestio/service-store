@@ -27,7 +27,7 @@ func createEntities(n int) {
 			Status:       "in_progress",
 			Options:      "options",
 			Definition:   "definition",
-			Mapping:      `{"valid":"json"}`,
+			Mapping:      `{"valid":"json","endpoint":"1.1.1.1"}`,
 		})
 		i++
 	}
