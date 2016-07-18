@@ -171,6 +171,13 @@ func TestGetHandler(t *testing.T) {
 				list := []Entity{}
 				json.Unmarshal(msg.Data, &list)
 				So(len(list), ShouldEqual, 20)
+				s := list[0]
+				So(s.Name, ShouldEqual, "Test19")
+				So(s.Endpoint, ShouldEqual, "1.1.1.1")
+
+				stored := Entity{}
+				db.Where("uuid = ?", s.Uuid).First(&stored)
+				So(stored.Endpoint, ShouldEqual, "")
 			})
 		})
 	})

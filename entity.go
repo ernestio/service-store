@@ -24,6 +24,7 @@ type Entity struct {
 	Status       string    `json:"status"`
 	Options      string    `json:"options"`
 	Definition   string    `json:"definition"`
+	Endpoint     string    `json:"endpoint" gorm:"-"`
 	Mapping      string    `json:"mapping" gorm:"type:text;"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -39,7 +40,7 @@ func (Entity) TableName() string {
 // will perform a search on the database
 func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
-	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition"
+	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition, mapping"
 	if e.Name != "" && e.GroupID != 0 {
 		if e.Uuid != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.Uuid).Order("version desc").Find(&entities)
@@ -56,10 +57,22 @@ func (e *Entity) Find() []interface{} {
 
 	list := make([]interface{}, len(entities))
 	for i, s := range entities {
+		s.Endpoint = s.getEndpoint()
+		s.Mapping = ""
 		list[i] = s
 	}
 
 	return list
+}
+
+func (e *Entity) getEndpoint() string {
+	var s struct {
+		Endpoint string `json:"endpoint"`
+	}
+	json.Unmarshal([]byte(e.Mapping), &s)
+
+	return s.Endpoint
+
 }
 
 // MapInput : maps the input []byte on the current entity
