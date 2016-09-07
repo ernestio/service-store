@@ -4,8 +4,8 @@ It manages all ernest service storage through a public Nats API
 
 ## Build status
 
-* master: [![CircleCI](https://circleci.com/gh/ErnestIO/service-store/tree/master.svg?style=svg)](https://circleci.com/gh/ErnestIO/service-store/tree/master)
-* develop: [![CircleCI](https://circleci.com/gh/ErnestIO/service-store/tree/develop.svg?style=svg)](https://circleci.com/gh/ErnestIO/service-store/tree/develop)
+* master: [![CircleCI](https://circleci.com/gh/ernestio/service-store/tree/master.svg?style=svg)](https://circleci.com/gh/ernestio/service-store/tree/master)
+* develop: [![CircleCI](https://circleci.com/gh/ernestio/service-store/tree/develop.svg?style=svg)](https://circleci.com/gh/ernestio/service-store/tree/develop)
 
 ## Installation
 
