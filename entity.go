@@ -52,6 +52,8 @@ func (e *Entity) Find() []interface{} {
 			db.Select(fields).Where("name = ?", e.Name).Order("version desc").Find(&entities)
 		} else if e.GroupID != 0 {
 			db.Select(fields).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+		} else if e.DatacenterID != 0 {
+			db.Select(fields).Where("datacenter_id = ?", e.DatacenterID).Order("version desc").Find(&entities)
 		}
 	}
 
