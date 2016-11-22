@@ -14,21 +14,22 @@ import (
 
 // Entity : the database mapped entity
 type Entity struct {
-	ID           uint      `json:"-" gorm:"primary_key"`
-	Uuid         string    `json:"id"`
-	GroupID      uint      `json:"group_id"`
-	DatacenterID uint      `json:"datacenter_id"`
-	Name         string    `json:"name"`
-	Type         string    `json:"type"`
-	Version      time.Time `json:"version"`
-	Status       string    `json:"status"`
-	Options      string    `json:"options"`
-	Definition   string    `json:"definition"`
-	Endpoint     string    `json:"endpoint" gorm:"-"`
-	Mapping      string    `json:"mapping" gorm:"type:text;"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    *time.Time `json:"-" sql:"index"`
+	ID             uint      `json:"-" gorm:"primary_key"`
+	Uuid           string    `json:"id"`
+	GroupID        uint      `json:"group_id"`
+	DatacenterID   uint      `json:"datacenter_id"`
+	Name           string    `json:"name"`
+	Type           string    `json:"type"`
+	Version        time.Time `json:"version"`
+	Status         string    `json:"status"`
+	LastKnownError string    `json:"last_known_error"`
+	Options        string    `json:"options"`
+	Definition     string    `json:"definition"`
+	Endpoint       string    `json:"endpoint" gorm:"-"`
+	Mapping        string    `json:"mapping" gorm:"type:text;"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time `json:"-" sql:"index"`
 }
 
 // TableName : set Entity's table name to be services
@@ -40,7 +41,7 @@ func (Entity) TableName() string {
 // will perform a search on the database
 func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
-	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition, mapping"
+	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
 	if e.Name != "" && e.GroupID != 0 {
 		if e.Uuid != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.Uuid).Order("version desc").Find(&entities)
@@ -112,6 +113,7 @@ func (e *Entity) LoadFromInput(msg []byte) bool {
 	e.Type = stored.Type
 	e.Version = stored.Version
 	e.Status = stored.Status
+	e.LastKnownError = stored.LastKnownError
 	e.Options = stored.Options
 	e.Definition = stored.Definition
 	e.Mapping = stored.Mapping
@@ -145,6 +147,7 @@ func (e *Entity) Update(body []byte) error {
 	stored.Type = e.Type
 	stored.Version = e.Version
 	stored.Status = e.Status
+	stored.LastKnownError = e.LastKnownError
 	stored.Options = e.Options
 	stored.Definition = e.Definition
 	stored.Mapping = e.Mapping
