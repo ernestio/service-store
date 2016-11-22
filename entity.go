@@ -17,6 +17,7 @@ type Entity struct {
 	ID             uint      `json:"-" gorm:"primary_key"`
 	Uuid           string    `json:"id"`
 	GroupID        uint      `json:"group_id"`
+	UserID         uint      `json:"user_id"`
 	DatacenterID   uint      `json:"datacenter_id"`
 	Name           string    `json:"name"`
 	Type           string    `json:"type"`
@@ -41,7 +42,7 @@ func (Entity) TableName() string {
 // will perform a search on the database
 func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
-	fields := "uuid, group_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
+	fields := "uuid, group_id, user_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
 	if e.Name != "" && e.GroupID != 0 {
 		if e.Uuid != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.Uuid).Order("version desc").Find(&entities)
@@ -109,6 +110,7 @@ func (e *Entity) LoadFromInput(msg []byte) bool {
 	e.Name = stored.Name
 	e.Uuid = stored.Uuid
 	e.GroupID = stored.GroupID
+	e.UserID = stored.UserID
 	e.DatacenterID = stored.DatacenterID
 	e.Type = stored.Type
 	e.Version = stored.Version
@@ -143,6 +145,7 @@ func (e *Entity) Update(body []byte) error {
 	stored.Name = e.Name
 	stored.Uuid = e.Uuid
 	stored.GroupID = e.GroupID
+	stored.UserID = e.UserID
 	stored.DatacenterID = e.DatacenterID
 	stored.Type = e.Type
 	stored.Version = e.Version
