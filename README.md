@@ -43,6 +43,12 @@ It receives as input a valid service with only the id or name as required fields
 ###service.set.mapping
 It receives as input a valid service with id, and it will update the service with the mapping field.
 
+###service.get.definition
+It receives as input a valid service with only the id or name as required fields. It returns a valid service definition.
+
+###service.set.definition
+It receives as input a valid service with id, and it will update the service with the definition field.
+
 ## Contributing
 
 Please read through our
@@ -56,7 +62,7 @@ relevant unit tests.
 ## Versioning
 
 For transparency into our release cycle and in striving to maintain backward
-compatibility, this project is maintained under [the Semantic Versioning guidelines](http://semver.org/). 
+compatibility, this project is maintained under [the Semantic Versioning guidelines](http://semver.org/).
 
 ## Copyright and License
 
@@ -64,4 +70,3 @@ Code and documentation copyright since 2015 r3labs.io authors.
 
 Code released under
 [the Mozilla Public License Version 2.0](LICENSE).
-

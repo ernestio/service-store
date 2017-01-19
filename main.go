@@ -37,6 +37,8 @@ func startHandler() {
 
 	n.Subscribe("service.get.mapping", GetMapping)
 	n.Subscribe("service.set.mapping", SetMapping)
+	n.Subscribe("service.get.definition", GetDefinition)
+	n.Subscribe("service.set.definition", SetDefinition)
 }
 
 func main() {

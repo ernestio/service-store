@@ -21,3 +21,21 @@ func SetMapping(msg *nats.Msg) {
 		handler.Nats.Publish(msg.Reply, []byte(`"success"`))
 	}
 }
+
+func GetDefinition(msg *nats.Msg) {
+	e := Entity{}
+	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
+		handler.Nats.Publish(msg.Reply, []byte(e.Definition))
+	}
+}
+
+func SetDefinition(msg *nats.Msg) {
+	e := Entity{}
+	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
+		input := Entity{}
+		input.MapInput(msg.Data)
+		e.Definition = input.Definition
+		db.Save(&e)
+		handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
