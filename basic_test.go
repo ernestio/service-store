@@ -17,8 +17,11 @@ import (
 
 func TestGetHandler(t *testing.T) {
 	setupNats()
-	n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
-		n.Publish(msg.Reply, []byte(`{"names":["users","services","services","services"],"password":"","url":"postgres://postgres@127.0.0.1","user":""}`))
+	_, _ = n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
+		_ = n.Publish(msg.Reply, []byte(`{"names":["users","services","services","services"],"password":"","url":"postgres://postgres@127.0.0.1","user":""}`))
+	})
+	_, _ = n.Subscribe("definition.map.service", func(msg *nats.Msg) {
+		_ = n.Publish(msg.Reply, []byte(`{"my":"definition"}`))
 	})
 	setupPg()
 	startHandler()
@@ -35,11 +38,11 @@ func TestGetHandler(t *testing.T) {
 			createEntities(1)
 			e := Entity{}
 			db.First(&e)
-			id := fmt.Sprint(e.Uuid)
+			id := fmt.Sprint(e.UUID)
 			msg, err := n.Request("service.get", []byte(`{"id":"`+id+`"}`), time.Second)
 			output := Entity{}
-			json.Unmarshal(msg.Data, &output)
-			So(output.Uuid, ShouldEqual, e.Uuid)
+			_ = json.Unmarshal(msg.Data, &output)
+			So(output.UUID, ShouldEqual, e.UUID)
 			So(output.Name, ShouldEqual, e.Name)
 			So(output.Type, ShouldEqual, e.Type)
 			So(err, ShouldEqual, nil)
@@ -52,8 +55,8 @@ func TestGetHandler(t *testing.T) {
 
 			msg, err := n.Request("service.get", []byte(`{"name":"`+e.Name+`"}`), time.Second)
 			output := Entity{}
-			json.Unmarshal(msg.Data, &output)
-			So(output.Uuid, ShouldEqual, e.Uuid)
+			_ = json.Unmarshal(msg.Data, &output)
+			So(output.UUID, ShouldEqual, e.UUID)
 			So(output.GroupID, ShouldEqual, e.GroupID)
 			So(output.DatacenterID, ShouldEqual, e.DatacenterID)
 			So(output.Name, ShouldEqual, e.Name)
@@ -79,7 +82,7 @@ func TestGetHandler(t *testing.T) {
 			createEntities(1)
 			last := Entity{}
 			db.First(&last)
-			id := fmt.Sprint(last.Uuid)
+			id := fmt.Sprint(last.UUID)
 
 			msg, err := n.Request("service.del", []byte(`{"id":"`+id+`"}`), time.Second)
 			So(string(msg.Data), ShouldEqual, string(handler.DeletedMessage))
@@ -87,7 +90,7 @@ func TestGetHandler(t *testing.T) {
 
 			deleted := Entity{}
 			db.Where("uuid = ?", id).First(&deleted)
-			So(deleted.Uuid, ShouldEqual, "")
+			So(deleted.UUID, ShouldEqual, "")
 		})
 	})
 
@@ -98,12 +101,12 @@ func TestGetHandler(t *testing.T) {
 				msg, err := n.Request("service.set", []byte(`{"name":"fred"}`), time.Second)
 				output := Entity{}
 				output.LoadFromInput(msg.Data)
-				So(output.Uuid, ShouldNotEqual, nil)
+				So(output.UUID, ShouldNotEqual, nil)
 				So(output.Name, ShouldEqual, "fred")
 				So(err, ShouldEqual, nil)
 
 				stored := Entity{}
-				db.Where("uuid = ?", output.Uuid).First(&stored)
+				db.Where("uuid = ?", output.UUID).First(&stored)
 				So(stored.Name, ShouldEqual, "fred")
 			})
 		})
@@ -113,7 +116,7 @@ func TestGetHandler(t *testing.T) {
 				msg, err := n.Request("service.set", []byte(`{"id": "unexisting", "name":"fred"}`), time.Second)
 				output := Entity{}
 				output.LoadFromInput(msg.Data)
-				So(output.Uuid, ShouldEqual, "unexisting")
+				So(output.UUID, ShouldEqual, "unexisting")
 				So(output.Name, ShouldEqual, "fred")
 				So(err, ShouldEqual, nil)
 			})
@@ -123,15 +126,15 @@ func TestGetHandler(t *testing.T) {
 			createEntities(1)
 			e := Entity{}
 			db.First(&e)
-			id := fmt.Sprint(e.Uuid)
+			id := fmt.Sprint(e.UUID)
 			Convey("When I update an existing entity", func() {
 				msg, err := n.Request("service.set", []byte(`{"id": "`+id+`", "name":"fred"}`), time.Second)
 				output := Entity{}
 				output.LoadFromInput(msg.Data)
 				stored := Entity{}
-				db.Where("uuid = ?", output.Uuid).First(&stored)
+				db.Where("uuid = ?", output.UUID).First(&stored)
 				Convey("Then we should receive an updated entity", func() {
-					So(output.Uuid, ShouldNotEqual, nil)
+					So(output.UUID, ShouldNotEqual, nil)
 					So(output.Name, ShouldEqual, "fred")
 					So(err, ShouldEqual, nil)
 
@@ -139,7 +142,7 @@ func TestGetHandler(t *testing.T) {
 				})
 				Convey("And non provided fields should not be updated", func() {
 					So(stored.Status, ShouldEqual, e.Status)
-					So(stored.Uuid, ShouldEqual, e.Uuid)
+					So(stored.UUID, ShouldEqual, e.UUID)
 					So(stored.GroupID, ShouldEqual, e.GroupID)
 					So(stored.DatacenterID, ShouldEqual, e.DatacenterID)
 					So(stored.Type, ShouldEqual, e.Type)
@@ -149,7 +152,7 @@ func TestGetHandler(t *testing.T) {
 					So(stored.Mapping, ShouldEqual, e.Mapping)
 
 					So(output.Status, ShouldEqual, e.Status)
-					So(output.Uuid, ShouldEqual, e.Uuid)
+					So(output.UUID, ShouldEqual, e.UUID)
 					So(output.GroupID, ShouldEqual, e.GroupID)
 					So(output.DatacenterID, ShouldEqual, e.DatacenterID)
 					So(output.Type, ShouldEqual, e.Type)
@@ -169,14 +172,14 @@ func TestGetHandler(t *testing.T) {
 			Convey("Then I should get a list of services", func() {
 				msg, _ := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
 				list := []Entity{}
-				json.Unmarshal(msg.Data, &list)
+				_ = json.Unmarshal(msg.Data, &list)
 				So(len(list), ShouldEqual, 20)
 				s := list[0]
 				So(s.Name, ShouldEqual, "Test19")
 				So(s.Endpoint, ShouldEqual, "1.1.1.1")
 
 				stored := Entity{}
-				db.Where("uuid = ?", s.Uuid).First(&stored)
+				db.Where("uuid = ?", s.UUID).First(&stored)
 				So(stored.Endpoint, ShouldEqual, "")
 			})
 		})
@@ -194,7 +197,7 @@ func TestGetHandler(t *testing.T) {
 			createEntities(1)
 			e := Entity{}
 			db.First(&e)
-			id := fmt.Sprint(e.Uuid)
+			id := fmt.Sprint(e.UUID)
 			Convey("Then calling service.get.mapping should return the valid mapping", func() {
 				msg, err := n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
 				So(string(msg.Data), ShouldEqual, string(e.Mapping))

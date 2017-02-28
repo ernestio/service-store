@@ -8,7 +8,7 @@ dependencies:
   override:
     - echo "CREATE DATABASE services;" | psql -U postgres
     - docker run -d -p 4222:4222 nats
-    - make deps
+    - make dev-deps
 
 test:
   override:
