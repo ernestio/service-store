@@ -19,7 +19,7 @@ func createEntities(n int) {
 		x := strconv.Itoa(i)
 		db.Create(&Entity{
 			Name:         "Test" + x,
-			Uuid:         "random_string" + x,
+			UUID:         "random_string" + x,
 			GroupID:      1,
 			DatacenterID: 1,
 			Type:         "type",

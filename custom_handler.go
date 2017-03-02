@@ -4,13 +4,15 @@ import (
 	"github.com/nats-io/nats"
 )
 
+// GetMapping : Mapping field getter
 func GetMapping(msg *nats.Msg) {
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		handler.Nats.Publish(msg.Reply, []byte(e.Mapping))
+		_ = handler.Nats.Publish(msg.Reply, []byte(e.Mapping))
 	}
 }
 
+// SetMapping : Mapping field setter
 func SetMapping(msg *nats.Msg) {
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
@@ -18,17 +20,19 @@ func SetMapping(msg *nats.Msg) {
 		input.MapInput(msg.Data)
 		e.Mapping = input.Mapping
 		db.Save(&e)
-		handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
 	}
 }
 
+// GetDefinition : Definition field getter
 func GetDefinition(msg *nats.Msg) {
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		handler.Nats.Publish(msg.Reply, []byte(e.Definition))
+		_ = handler.Nats.Publish(msg.Reply, []byte(e.Definition))
 	}
 }
 
+// SetDefinition : Definition field setter
 func SetDefinition(msg *nats.Msg) {
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
@@ -36,6 +40,6 @@ func SetDefinition(msg *nats.Msg) {
 		input.MapInput(msg.Data)
 		e.Definition = input.Definition
 		db.Save(&e)
-		handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
 	}
 }
