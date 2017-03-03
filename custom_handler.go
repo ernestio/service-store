@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/nats-io/nats"
 )
 
@@ -14,6 +16,8 @@ func GetMapping(msg *nats.Msg) {
 
 // SetMapping : Mapping field setter
 func SetMapping(msg *nats.Msg) {
+	db.Exec("set transaction isolation level serializable")
+
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
 		input := Entity{}
@@ -40,6 +44,152 @@ func SetDefinition(msg *nats.Msg) {
 		input.MapInput(msg.Data)
 		e.Definition = input.Definition
 		db.Save(&e)
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
+
+// SetComponent : Mapping component setter
+func SetComponent(msg *nats.Msg) {
+	var c Component
+	var s *Entity
+	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
+		sid, _ := c.GetServiceID()
+
+		db.Exec("set transaction isolation level serializable")
+		tx := db.Begin()
+
+		tx.Where("uuid = ?", sid).First(s)
+		if s == nil {
+			tx.Rollback()
+			return
+		}
+
+		err := s.setComponent(c)
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		err = tx.Save(s).Error
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		tx.Commit()
+
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
+
+// DeleteComponent : Mapping component deleter
+func DeleteComponent(msg *nats.Msg) {
+	var c Component
+	var s *Entity
+	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
+		sid, _ := c.GetServiceID()
+		cid, _ := c.GetComponentID()
+
+		db.Exec("set transaction isolation level serializable")
+		tx := db.Begin()
+
+		tx.Where("uuid = ?", sid).First(s)
+		if s == nil {
+			tx.Rollback()
+			return
+		}
+
+		err := s.deleteComponent(cid)
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		err = tx.Save(s).Error
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		tx.Commit()
+
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
+
+// SetChange : Mapping change setter
+func SetChange(msg *nats.Msg) {
+	var c Component
+	var s *Entity
+	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
+		sid, _ := c.GetServiceID()
+
+		db.Exec("set transaction isolation level serializable")
+		tx := db.Begin()
+
+		tx.Where("uuid = ?", sid).First(s)
+		if s == nil {
+			tx.Rollback()
+			return
+		}
+
+		err := s.setChange(c)
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		err = tx.Save(s).Error
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		tx.Commit()
+
+		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
+
+// DeleteChange : Mapping change deleter
+func DeleteChange(msg *nats.Msg) {
+	var c Component
+	var s *Entity
+	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
+		sid, _ := c.GetServiceID()
+		cid, _ := c.GetComponentID()
+
+		db.Exec("set transaction isolation level serializable")
+		tx := db.Begin()
+
+		tx.Where("uuid = ?", sid).First(s)
+		if s == nil {
+			tx.Rollback()
+			return
+		}
+
+		err := s.deleteChange(cid)
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		err = tx.Save(s).Error
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return
+		}
+
+		tx.Commit()
+
 		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
 	}
 }

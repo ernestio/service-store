@@ -50,6 +50,19 @@ func startHandler() {
 	if _, err := n.Subscribe("service.set.mapping", SetMapping); err != nil {
 		log.Panic(err)
 	}
+	if _, err := n.Subscribe("service.set.mapping.component", SetComponent); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.Subscribe("service.del.mapping.component", DeleteComponent); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.Subscribe("service.set.mapping.change", SetChange); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.Subscribe("service.del.mapping.change", DeleteChange); err != nil {
+		log.Panic(err)
+	}
+
 	if _, err := n.Subscribe("service.get.definition", GetDefinition); err != nil {
 		log.Panic(err)
 	}
