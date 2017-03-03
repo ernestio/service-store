@@ -51,15 +51,15 @@ func SetDefinition(msg *nats.Msg) {
 // SetComponent : Mapping component setter
 func SetComponent(msg *nats.Msg) {
 	var c Component
-	var s *Entity
+	s := Entity{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
 		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
 
-		tx.Where("uuid = ?", sid).First(s)
-		if s == nil {
+		tx.Where("uuid = ?", sid).First(&s)
+		if &s == nil {
 			tx.Rollback()
 			return
 		}
@@ -71,7 +71,7 @@ func SetComponent(msg *nats.Msg) {
 			return
 		}
 
-		err = tx.Save(s).Error
+		err = tx.Save(&s).Error
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -87,7 +87,7 @@ func SetComponent(msg *nats.Msg) {
 // DeleteComponent : Mapping component deleter
 func DeleteComponent(msg *nats.Msg) {
 	var c Component
-	var s *Entity
+	s := Entity{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
@@ -95,8 +95,8 @@ func DeleteComponent(msg *nats.Msg) {
 		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
 
-		tx.Where("uuid = ?", sid).First(s)
-		if s == nil {
+		tx.Where("uuid = ?", sid).First(&s)
+		if &s == nil {
 			tx.Rollback()
 			return
 		}
@@ -108,7 +108,7 @@ func DeleteComponent(msg *nats.Msg) {
 			return
 		}
 
-		err = tx.Save(s).Error
+		err = tx.Save(&s).Error
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -124,15 +124,15 @@ func DeleteComponent(msg *nats.Msg) {
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
 	var c Component
-	var s *Entity
+	s := Entity{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
 		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
 
-		tx.Where("uuid = ?", sid).First(s)
-		if s == nil {
+		tx.Where("uuid = ?", sid).First(&s)
+		if &s == nil {
 			tx.Rollback()
 			return
 		}
@@ -144,7 +144,7 @@ func SetChange(msg *nats.Msg) {
 			return
 		}
 
-		err = tx.Save(s).Error
+		err = tx.Save(&s).Error
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -160,7 +160,7 @@ func SetChange(msg *nats.Msg) {
 // DeleteChange : Mapping change deleter
 func DeleteChange(msg *nats.Msg) {
 	var c Component
-	var s *Entity
+	s := Entity{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
@@ -168,8 +168,8 @@ func DeleteChange(msg *nats.Msg) {
 		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
 
-		tx.Where("uuid = ?", sid).First(s)
-		if s == nil {
+		tx.Where("uuid = ?", sid).First(&s)
+		if &s == nil {
 			tx.Rollback()
 			return
 		}
@@ -181,7 +181,7 @@ func DeleteChange(msg *nats.Msg) {
 			return
 		}
 
-		err = tx.Save(s).Error
+		err = tx.Save(&s).Error
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
