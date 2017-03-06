@@ -57,7 +57,7 @@ func SetComponent(msg *nats.Msg) {
 		sid, _ := c.GetServiceID()
 
 		tx := db.Begin()
-		//tx.Exec("set transaction isolation level serializable")
+		tx.Exec("set transaction isolation level serializable")
 
 		err := tx.Raw("SELECT * FROM services WHERE uuid = ? for update", sid).Scan(&s).Error
 		//tx.Where("uuid = ?", sid).First(&s)
@@ -133,7 +133,7 @@ func SetChange(msg *nats.Msg) {
 		sid, _ := c.GetServiceID()
 
 		tx := db.Begin()
-		//tx.Exec("set transaction isolation level serializable")
+		tx.Exec("set transaction isolation level serializable")
 
 		err := tx.Raw("SELECT * FROM services WHERE uuid = ? for update", sid).Scan(&s).Error
 		//tx.Where("uuid = ?", sid).First(&s)
