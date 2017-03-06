@@ -15,6 +15,7 @@ type Mapping struct {
 	Action     string                   `json:"action"`
 	Components []map[string]interface{} `json:"components"`
 	Changes    []map[string]interface{} `json:"changes"`
+	Edges      []map[string]interface{} `json:"edges"`
 }
 
 // Load : Load a mapping from json
