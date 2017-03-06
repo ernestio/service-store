@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -272,8 +271,6 @@ func (e *Entity) deleteComponent(id string) error {
 func (e *Entity) setChange(xc map[string]interface{}) error {
 	var m Mapping
 
-	fmt.Println(e.Mapping)
-
 	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return err
@@ -290,8 +287,6 @@ func (e *Entity) setChange(xc map[string]interface{}) error {
 	}
 
 	e.Mapping = string(data)
-
-	fmt.Println(e.Mapping)
 
 	return nil
 }
