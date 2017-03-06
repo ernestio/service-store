@@ -181,8 +181,8 @@ func (e *Entity) Delete() error {
 
 // Save : Persists current entity on database
 func (e *Entity) Save() error {
-	db.Exec("set transaction isolation level serializable")
 	tx := db.Begin()
+	tx.Exec("set transaction isolation level serializable")
 
 	err := tx.Save(e).Error
 	if err != nil {
