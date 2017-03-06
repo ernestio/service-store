@@ -34,7 +34,7 @@ func TestSetComponentHandler(t *testing.T) {
 			db.First(&e)
 			id := fmt.Sprint(e.UUID)
 
-			n.Publish("service.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"`+id+`", "_state": "completed"}`))
+			_ = n.Publish("service.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"`+id+`", "_state": "completed"}`))
 			_, err := n.Request("service.set.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"`+id+`", "_state": "completed"}`), time.Second)
 
 			Convey("It should update both the components", func() {
@@ -63,7 +63,7 @@ func TestSetComponentHandler(t *testing.T) {
 			db.First(&e)
 			id := fmt.Sprint(e.UUID)
 
-			n.Publish("service.set.mapping.change", []byte(`{"_component_id":"network::test-3", "service":"`+id+`", "_state": "completed"}`))
+			_ = n.Publish("service.set.mapping.change", []byte(`{"_component_id":"network::test-3", "service":"`+id+`", "_state": "completed"}`))
 			_, err := n.Request("service.set.mapping.change", []byte(`{"_component_id":"network::test-4", "service":"`+id+`", "_state": "completed"}`), time.Second)
 
 			Convey("It should update both the components", func() {
