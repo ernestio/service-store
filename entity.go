@@ -6,7 +6,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -210,182 +210,59 @@ func (e *Entity) requestDefinition() string {
 
 // SetComponent : sets a component on a services mapping
 func (e *Entity) setComponent(xc map[string]interface{}) error {
-	var m map[string]interface{}
+	var m Mapping
 
-	err := json.Unmarshal([]byte(e.Mapping), &m)
+	fmt.Println(e.Mapping)
+
+	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return err
 	}
 
-	id, ok := xc["_component_id"].(string)
-	if ok != true {
-		return errors.New("could not process input component")
+	err = m.SetComponent(xc)
+	if err != nil {
+		return err
 	}
 
-	components, ok := m["components"].([]interface{})
-	if ok != true {
-		return errors.New("could not process components")
-	}
-
-	for i := 0; i < len(components); i++ {
-		c, ok := components[i].(map[string]interface{})
-		if ok != true {
-			return errors.New("could not process component")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return errors.New("could not process component")
-		}
-
-		if cid == id {
-			components[i] = xc
-
-			data, merr := json.Marshal(m)
-			if merr != nil {
-				return merr
-			}
-
-			e.Mapping = string(data)
-
-			return nil
-		}
-	}
-
-	components = append(components, &xc)
-
-	data, err := json.Marshal(m)
+	data, err := m.ToJSON()
 	if err != nil {
 		return err
 	}
 
 	e.Mapping = string(data)
+
+	fmt.Println(e.Mapping)
 
 	return nil
 }
 
 // GetComponent : returns a component from a services mapping based on it's id
 func (e *Entity) getComponent(id string) (*map[string]interface{}, error) {
-	var m map[string]interface{}
+	var m Mapping
 
-	err := json.Unmarshal([]byte(e.Mapping), &m)
+	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return nil, err
 	}
 
-	components, ok := m["components"].([]interface{})
-	if ok != true {
-		return nil, errors.New("could not process components")
-	}
-
-	for _, component := range components {
-		c, ok := component.(map[string]interface{})
-		if ok != true {
-			return nil, errors.New("could not process component")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return nil, errors.New("could not process component")
-		}
-
-		if cid == id {
-			return &c, nil
-		}
-	}
-
-	return nil, errors.New("could not find component")
+	return m.GetComponent(id)
 }
 
 // DeleteComponent : deletes a component from the mapping based on id
 func (e *Entity) deleteComponent(id string) error {
-	var m map[string]interface{}
+	var m Mapping
 
-	err := json.Unmarshal([]byte(e.Mapping), &m)
+	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return err
 	}
 
-	components, ok := m["components"].([]interface{})
-	if ok != true {
-		return errors.New("could not process components")
-	}
-
-	for i := len(components) - 1; i >= 0; i-- {
-		c, ok := components[i].(map[string]interface{})
-		if ok != true {
-			return errors.New("could not process component")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return errors.New("could not process component")
-		}
-
-		if cid == id {
-			components = append(components[:i], components[i+1:]...)
-
-			data, err := json.Marshal(m)
-			if err != nil {
-				return err
-			}
-
-			e.Mapping = string(data)
-
-			return nil
-		}
-	}
-
-	return errors.New("could not find component")
-}
-
-// SetChange : sets a change on a services mapping
-func (e *Entity) setChange(xc map[string]interface{}) error {
-	var m map[string]interface{}
-
-	err := json.Unmarshal([]byte(e.Mapping), &m)
+	err = m.DeleteComponent(id)
 	if err != nil {
 		return err
 	}
 
-	id, ok := xc["_component_id"].(string)
-	if ok != true {
-		return errors.New("could not process input change")
-	}
-
-	changes, ok := m["changes"].([]interface{})
-	if ok != true {
-		return errors.New("could not process changes")
-	}
-
-	for i := 0; i < len(changes); i++ {
-		c, ok := changes[i].(map[string]interface{})
-		if ok != true {
-			return errors.New("could not process change")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return errors.New("could not process change")
-		}
-
-		if cid == id {
-			changes[i] = xc
-
-			data, merr := json.Marshal(m)
-			if merr != nil {
-				return merr
-			}
-
-			e.Mapping = string(data)
-
-			return nil
-		}
-	}
-
-	changes = append(changes, &xc)
-
-	data, err := json.Marshal(m)
+	data, err := m.ToJSON()
 	if err != nil {
 		return err
 	}
@@ -395,77 +272,66 @@ func (e *Entity) setChange(xc map[string]interface{}) error {
 	return nil
 }
 
-// GetChange : returns a change from a services mapping based on it's id
-func (e *Entity) getChange(id string) (*map[string]interface{}, error) {
-	var m map[string]interface{}
+// SetChange : sets a change on a services mapping
+func (e *Entity) setChange(xc map[string]interface{}) error {
+	var m Mapping
 
-	err := json.Unmarshal([]byte(e.Mapping), &m)
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println(e.Mapping)
 
-	changes, ok := m["changes"].([]interface{})
-	if ok != true {
-		return nil, errors.New("could not process changes")
-	}
-
-	for _, change := range changes {
-		c, ok := change.(map[string]interface{})
-		if ok != true {
-			return nil, errors.New("could not process change")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return nil, errors.New("could not process change")
-		}
-
-		if cid == id {
-			return &c, nil
-		}
-	}
-
-	return nil, errors.New("could not find change")
-}
-
-// DeleteChange : deletes a change from the mapping based on id
-func (e *Entity) deleteChange(id string) error {
-	var m map[string]interface{}
-
-	err := json.Unmarshal([]byte(e.Mapping), &m)
+	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return err
 	}
 
-	changes, ok := m["changes"].([]interface{})
-	if ok != true {
-		return errors.New("could not process changes")
+	err = m.SetChange(xc)
+	if err != nil {
+		return err
 	}
 
-	for i := len(changes) - 1; i >= 0; i-- {
-		c, ok := changes[i].(map[string]interface{})
-		if ok != true {
-			return errors.New("could not process change")
-		}
-
-		cid, ok := c["_component_id"].(string)
-		if ok != true {
-			return errors.New("could not process change")
-		}
-
-		if cid == id {
-			changes = append(changes[:i], changes[i+1:]...)
-
-			data, err := json.Marshal(m)
-			if err != nil {
-				return err
-			}
-
-			e.Mapping = string(data)
-
-			return nil
-		}
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
 	}
 
-	return errors.New("could not find change")
+	e.Mapping = string(data)
+
+	fmt.Println(e.Mapping)
+
+	return nil
+}
+
+// GetChange : returns a change from a services mapping based on it's id
+func (e *Entity) getChange(id string) (*map[string]interface{}, error) {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return nil, err
+	}
+
+	return m.GetChange(id)
+}
+
+// DeleteChange : deletes a change from the mapping based on id
+func (e *Entity) deleteChange(id string) error {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return err
+	}
+
+	err = m.DeleteChange(id)
+	if err != nil {
+		return err
+	}
+
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	e.Mapping = string(data)
+
+	return nil
 }

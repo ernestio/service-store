@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/nats-io/nats"
@@ -123,6 +124,8 @@ func DeleteComponent(msg *nats.Msg) {
 
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
+	log.Println("got change!")
+
 	var c Component
 	s := Entity{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
@@ -133,6 +136,7 @@ func SetChange(msg *nats.Msg) {
 
 		tx.Where("uuid = ?", sid).First(&s)
 		if &s == nil {
+			log.Println("could not find service! " + sid)
 			tx.Rollback()
 			return
 		}
@@ -154,7 +158,11 @@ func SetChange(msg *nats.Msg) {
 		tx.Commit()
 
 		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	} else {
+		log.Println("failed to load component!")
 	}
+
+	fmt.Println("change set!")
 }
 
 // DeleteChange : Mapping change deleter
