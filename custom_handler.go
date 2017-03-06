@@ -56,16 +56,17 @@ func SetComponent(msg *nats.Msg) {
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
-		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
+		//tx.Exec("set transaction isolation level serializable")
 
-		tx.Where("uuid = ?", sid).First(&s)
-		if &s == nil {
+		err := tx.Raw("SELECT * FROM services WHERE uuid = ? for update", sid).Scan(&s).Error
+		//tx.Where("uuid = ?", sid).First(&s)
+		if err != nil {
 			tx.Rollback()
 			return
 		}
 
-		err := s.setComponent(c)
+		err = s.setComponent(c)
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -93,8 +94,8 @@ func DeleteComponent(msg *nats.Msg) {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
 
-		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
+		tx.Exec("set transaction isolation level serializable")
 
 		tx.Where("uuid = ?", sid).First(&s)
 		if &s == nil {
@@ -131,17 +132,18 @@ func SetChange(msg *nats.Msg) {
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
-		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
+		//tx.Exec("set transaction isolation level serializable")
 
-		tx.Where("uuid = ?", sid).First(&s)
-		if &s == nil {
+		err := tx.Raw("SELECT * FROM services WHERE uuid = ? for update", sid).Scan(&s).Error
+		//tx.Where("uuid = ?", sid).First(&s)
+		if err != nil {
 			log.Println("could not find service! " + sid)
 			tx.Rollback()
 			return
 		}
 
-		err := s.setChange(c)
+		err = s.setChange(c)
 		if err != nil {
 			log.Println(err)
 			tx.Rollback()
@@ -173,8 +175,8 @@ func DeleteChange(msg *nats.Msg) {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
 
-		db.Exec("set transaction isolation level serializable")
 		tx := db.Begin()
+		tx.Exec("set transaction isolation level serializable")
 
 		tx.Where("uuid = ?", sid).First(&s)
 		if &s == nil {

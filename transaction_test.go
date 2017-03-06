@@ -67,15 +67,20 @@ func TestSetComponentHandler(t *testing.T) {
 			_, err := n.Request("service.set.mapping.change", []byte(`{"_component_id":"network::test-4", "service":"`+id+`", "_state": "completed"}`), time.Second)
 
 			Convey("It should update both the components", func() {
-				var m Mapping
 				So(err, ShouldBeNil)
+
+				var m Mapping
 				db.First(&e)
+
 				lerr := m.Load([]byte(e.Mapping))
 				So(lerr, ShouldBeNil)
+
 				c1, err := m.GetChange("network::test-3")
 				So(err, ShouldBeNil)
+
 				So((*c1)["_state"].(string), ShouldEqual, "completed")
 				c2, err := m.GetChange("network::test-4")
+
 				So(err, ShouldBeNil)
 				So((*c2)["_state"].(string), ShouldEqual, "completed")
 			})
