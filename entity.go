@@ -212,8 +212,6 @@ func (e *Entity) requestDefinition() string {
 func (e *Entity) setComponent(xc map[string]interface{}) error {
 	var m Mapping
 
-	fmt.Println(e.Mapping)
-
 	err := m.Load([]byte(e.Mapping))
 	if err != nil {
 		return err
@@ -230,8 +228,6 @@ func (e *Entity) setComponent(xc map[string]interface{}) error {
 	}
 
 	e.Mapping = string(data)
-
-	fmt.Println(e.Mapping)
 
 	return nil
 }
