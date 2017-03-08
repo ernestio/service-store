@@ -180,7 +180,17 @@ func (e *Entity) Delete() error {
 
 // Save : Persists current entity on database
 func (e *Entity) Save() error {
-	db.Save(&e)
+	tx := db.Begin()
+	tx.Exec("set transaction isolation level serializable")
+
+	err := tx.Save(e).Error
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
 
 	return nil
 }
@@ -195,4 +205,124 @@ func (e *Entity) requestDefinition() string {
 		log.Panic(err)
 	}
 	return string(res.Data)
+}
+
+// SetComponent : sets a component on a services mapping
+func (e *Entity) setComponent(xc map[string]interface{}) error {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return err
+	}
+
+	err = m.SetComponent(xc)
+	if err != nil {
+		return err
+	}
+
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	e.Mapping = string(data)
+
+	return nil
+}
+
+// GetComponent : returns a component from a services mapping based on it's id
+func (e *Entity) getComponent(id string) (*map[string]interface{}, error) {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return nil, err
+	}
+
+	return m.GetComponent(id)
+}
+
+// DeleteComponent : deletes a component from the mapping based on id
+func (e *Entity) deleteComponent(id string) error {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return err
+	}
+
+	err = m.DeleteComponent(id)
+	if err != nil {
+		return err
+	}
+
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	e.Mapping = string(data)
+
+	return nil
+}
+
+// SetChange : sets a change on a services mapping
+func (e *Entity) setChange(xc map[string]interface{}) error {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return err
+	}
+
+	err = m.SetChange(xc)
+	if err != nil {
+		return err
+	}
+
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	e.Mapping = string(data)
+
+	return nil
+}
+
+// GetChange : returns a change from a services mapping based on it's id
+func (e *Entity) getChange(id string) (*map[string]interface{}, error) {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return nil, err
+	}
+
+	return m.GetChange(id)
+}
+
+// DeleteChange : deletes a change from the mapping based on id
+func (e *Entity) deleteChange(id string) error {
+	var m Mapping
+
+	err := m.Load([]byte(e.Mapping))
+	if err != nil {
+		return err
+	}
+
+	err = m.DeleteChange(id)
+	if err != nil {
+		return err
+	}
+
+	data, err := m.ToJSON()
+	if err != nil {
+		return err
+	}
+
+	e.Mapping = string(data)
+
+	return nil
 }

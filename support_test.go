@@ -27,7 +27,7 @@ func createEntities(n int) {
 			Status:       "in_progress",
 			Options:      "options",
 			Definition:   "definition",
-			Mapping:      `{"valid":"json","endpoint":"1.1.1.1"}`,
+			Mapping:      `{"id": "random_string` + x + `", "action": "service.create", "components":[{"_component_id": "network::test-1", "_state": "running"}, {"_component_id": "network::test-2", "_state": "running"}], "changes":[{"_component_id": "network::test-3", "_state": "waiting"}, {"_component_id": "network::test-4", "_state": "waiting"}]}`,
 		})
 		i++
 	}

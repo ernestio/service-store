@@ -176,7 +176,7 @@ func TestGetHandler(t *testing.T) {
 				So(len(list), ShouldEqual, 20)
 				s := list[0]
 				So(s.Name, ShouldEqual, "Test19")
-				So(s.Endpoint, ShouldEqual, "1.1.1.1")
+				// So(s.Action, ShouldEqual, "service.create")
 
 				stored := Entity{}
 				db.Where("uuid = ?", s.UUID).First(&stored)
