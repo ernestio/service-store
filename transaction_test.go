@@ -52,6 +52,27 @@ func TestSetComponentHandler(t *testing.T) {
 			})
 		})
 
+		Convey("When receiving an event that deletes a component", func() {
+			createEntities(1)
+			e := Entity{}
+			db.First(&e)
+			id := fmt.Sprint(e.UUID)
+
+			_, err := n.Request("service.del.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"`+id+`", "_state": "completed"}`), time.Second)
+
+			Convey("It should remove it from the mapping", func() {
+				var m Mapping
+				So(err, ShouldBeNil)
+				db.First(&e)
+				lerr := m.Load([]byte(e.Mapping))
+				So(lerr, ShouldBeNil)
+				c1, err := m.GetComponent("network::test-1")
+				So(err, ShouldBeNil)
+				So((*c1)["_state"].(string), ShouldEqual, "completed")
+				_, err = m.GetComponent("network::test-2")
+				So(err, ShouldNotBeNil)
+			})
+		})
 	})
 
 	Convey("Scenario: setting multiple changes on a service concurrently", t, func() {
