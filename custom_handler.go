@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/nats-io/nats"
 )
@@ -16,8 +17,6 @@ func GetMapping(msg *nats.Msg) {
 
 // SetMapping : Mapping field setter
 func SetMapping(msg *nats.Msg) {
-	db.Exec("set transaction isolation level serializable")
-
 	e := Entity{}
 	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
 		input := Entity{}
@@ -192,5 +191,35 @@ func DeleteChange(msg *nats.Msg) {
 		tx.Commit()
 
 		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+	}
+}
+
+// ServiceComplete : sets a services status to complete
+func ServiceComplete(msg *nats.Msg) {
+	parts := strings.Split(msg.Subject, ".")
+
+	e := Entity{}
+	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
+		input := Entity{}
+		input.MapInput(msg.Data)
+
+		if parts[1] == "delete" {
+			_ = e.Delete()
+		} else {
+			e.Status = "done"
+			db.Save(&e)
+		}
+	}
+}
+
+// ServiceError : sets a services status to errored
+func ServiceError(msg *nats.Msg) {
+	e := Entity{}
+	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
+		input := Entity{}
+		input.MapInput(msg.Data)
+
+		e.Status = "errored"
+		db.Save(&e)
 	}
 }
