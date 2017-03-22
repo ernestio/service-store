@@ -15,9 +15,10 @@ import (
 // Entity : the database mapped entity
 type Entity struct {
 	ID             uint      `json:"-" gorm:"primary_key"`
-	Uuid           string    `json:"id"`
+	UUID           string    `json:"id"`
 	GroupID        uint      `json:"group_id"`
 	UserID         uint      `json:"user_id"`
+	UserName       string    `json:"user_name"`
 	DatacenterID   uint      `json:"datacenter_id"`
 	Name           string    `json:"name"`
 	Type           string    `json:"type"`
@@ -44,8 +45,8 @@ func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
 	fields := "uuid, group_id, user_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
 	if e.Name != "" && e.GroupID != 0 {
-		if e.Uuid != "" {
-			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.Uuid).Order("version desc").Find(&entities)
+		if e.UUID != "" {
+			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
 		} else {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
 		}
@@ -96,8 +97,8 @@ func (e *Entity) HasID() bool {
 func (e *Entity) LoadFromInput(msg []byte) bool {
 	e.MapInput(msg)
 	var stored Entity
-	if e.Uuid != "" {
-		db.Where("uuid = ?", e.Uuid).First(&stored)
+	if e.UUID != "" {
+		db.Where("uuid = ?", e.UUID).First(&stored)
 	} else if e.Name != "" {
 		db.Where("name = ?", e.Name).First(&stored)
 	}
@@ -108,9 +109,10 @@ func (e *Entity) LoadFromInput(msg []byte) bool {
 		return false
 	}
 	e.Name = stored.Name
-	e.Uuid = stored.Uuid
+	e.UUID = stored.UUID
 	e.GroupID = stored.GroupID
 	e.UserID = stored.UserID
+	e.UserName = stored.UserName
 	e.DatacenterID = stored.DatacenterID
 	e.Type = stored.Type
 	e.Version = stored.Version
@@ -141,9 +143,9 @@ func (e *Entity) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool {
 func (e *Entity) Update(body []byte) error {
 	e.MapInput(body)
 	stored := Entity{}
-	db.Where("uuid = ?", e.Uuid).First(&stored)
+	db.Where("uuid = ?", e.UUID).First(&stored)
 	stored.Name = e.Name
-	stored.Uuid = e.Uuid
+	stored.UUID = e.UUID
 	stored.GroupID = e.GroupID
 	stored.UserID = e.UserID
 	stored.DatacenterID = e.DatacenterID
