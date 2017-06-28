@@ -13,6 +13,7 @@ import (
 type Mapping struct {
 	ID         string                   `json:"id"`
 	Action     string                   `json:"action"`
+	Name       string                   `json:"name"`
 	Components []map[string]interface{} `json:"components"`
 	Changes    []map[string]interface{} `json:"changes"`
 	Edges      []map[string]interface{} `json:"edges"`
