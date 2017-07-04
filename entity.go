@@ -29,6 +29,9 @@ type Entity struct {
 	Definition     string    `json:"definition"`
 	Endpoint       string    `json:"endpoint" gorm:"-"`
 	Mapping        string    `json:"mapping" gorm:"type:text;"`
+	Sync           bool      `json:"sync"`
+	SyncType       string    `json:"sync_type"`
+	SyncInterval   int       `json:"sync_interval"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `json:"-" sql:"index"`
@@ -122,6 +125,9 @@ func (e *Entity) LoadFromInput(msg []byte) bool {
 	e.Type = stored.Type
 	e.Version = stored.Version
 	e.Status = stored.Status
+	e.Sync = stored.Sync
+	e.SyncType = stored.SyncType
+	e.SyncInterval = stored.SyncInterval
 	e.LastKnownError = stored.LastKnownError
 	e.Options = stored.Options
 	e.Definition = stored.Definition
@@ -163,6 +169,9 @@ func (e *Entity) Update(body []byte) error {
 	}
 	stored.Status = e.Status
 	stored.LastKnownError = e.LastKnownError
+	stored.Sync = e.Sync
+	stored.SyncType = e.SyncType
+	stored.SyncInterval = e.SyncInterval
 	stored.Options = e.Options
 	stored.Mapping = e.Mapping
 	stored.ID = e.ID
