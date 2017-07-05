@@ -206,7 +206,9 @@ func ServiceComplete(msg *nats.Msg) {
 		if parts[1] == "delete" {
 			_ = e.Delete()
 		} else {
-			e.Status = "done"
+			if e.Status != "syncing" {
+				e.Status = "done"
+			}
 			db.Save(&e)
 		}
 	}
