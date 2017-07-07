@@ -164,11 +164,7 @@ func (e *Entity) Update(body []byte) error {
 	stored.DatacenterID = e.DatacenterID
 	stored.Type = e.Type
 	stored.Version = e.Version
-	if e.Status == "done" && e.Status != stored.Status {
-		stored.Definition = e.requestDefinition()
-	} else {
-		stored.Definition = e.Definition
-	}
+	stored.Definition = e.Definition
 	stored.Status = e.Status
 	stored.LastKnownError = e.LastKnownError
 	stored.Sync = e.Sync
