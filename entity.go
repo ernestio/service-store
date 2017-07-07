@@ -56,14 +56,14 @@ func (e *Entity) Find() []interface{} {
 	} else {
 		if e.Name != "" && e.UUID != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
+		} else if e.Name != "" && e.Status != "" {
+			db.Select(fields).Where("name = ?", e.Name).Where("status = ?", e.Status).Order("version desc").Find(&entities)
 		} else if e.Name != "" {
 			db.Select(fields).Where("name = ?", e.Name).Order("version desc").Find(&entities)
 		} else if e.GroupID != 0 {
 			db.Select(fields).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
 		} else if e.DatacenterID != 0 {
 			db.Select(fields).Where("datacenter_id = ?", e.DatacenterID).Order("version desc").Find(&entities)
-		} else if e.Name != "" && e.Status != "" {
-			db.Select(fields).Where("name = ?", e.Name).Where("status = ?", e.Status).Order("version desc").Find(&entities)
 		}
 	}
 
