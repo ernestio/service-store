@@ -9,19 +9,19 @@ import (
 
 // GetMapping : Mapping field getter
 func GetMapping(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		_ = handler.Nats.Publish(msg.Reply, []byte(e.Mapping))
+	b := Build{}
+	if ok := b.LoadFromInputOrFail(msg, &handler); ok {
+		_ = handler.Nats.Publish(msg.Reply, []byte(b.Mapping))
 	}
 }
 
 // SetMapping : Mapping field setter
 func SetMapping(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
+	b := Build{}
+	if ok := s.LoadFromInputOrFail(msg, &handler); ok {
+		input := Build{}
 		input.MapInput(msg.Data)
-		e.Mapping = input.Mapping
+		b.Mapping = input.Mapping
 		db.Save(&e)
 		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
 	}
@@ -29,28 +29,28 @@ func SetMapping(msg *nats.Msg) {
 
 // GetDefinition : Definition field getter
 func GetDefinition(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
+	b := Build{}
+	if ok := s.LoadFromInputOrFail(msg, &handler); ok {
 		_ = handler.Nats.Publish(msg.Reply, []byte(e.Definition))
 	}
 }
 
 // SetDefinition : Definition field setter
 func SetDefinition(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
+	b := Build{}
+	if ok := s.LoadFromInputOrFail(msg, &handler); ok {
+		input := Build{}
 		input.MapInput(msg.Data)
-		e.Definition = input.Definition
-		db.Save(&e)
-		_ = handler.Nats.Publish(msg.Reply, []byte(`"success"`))
+		b.Definition = input.Definition
+		db.Save(&b)
+		_ = handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
 	}
 }
 
 // SetComponent : Mapping component setter
 func SetComponent(msg *nats.Msg) {
 	var c Component
-	s := Entity{}
+	s := Service{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
@@ -86,7 +86,7 @@ func SetComponent(msg *nats.Msg) {
 // DeleteComponent : Mapping component deleter
 func DeleteComponent(msg *nats.Msg) {
 	var c Component
-	s := Entity{}
+	s := Service{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
@@ -123,7 +123,7 @@ func DeleteComponent(msg *nats.Msg) {
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
 	var c Component
-	s := Entity{}
+	s := Service{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 
@@ -160,7 +160,7 @@ func SetChange(msg *nats.Msg) {
 // DeleteChange : Mapping change deleter
 func DeleteChange(msg *nats.Msg) {
 	var c Component
-	s := Entity{}
+	s := Service{}
 	if ok := c.LoadFromInputOrFail(msg, &handler); ok {
 		sid, _ := c.GetServiceID()
 		cid, _ := c.GetComponentID()
@@ -198,9 +198,9 @@ func DeleteChange(msg *nats.Msg) {
 func ServiceComplete(msg *nats.Msg) {
 	parts := strings.Split(msg.Subject, ".")
 
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
+	s := Service{}
+	if ok := s.LoadFromInputOrFail(msg, &handler); ok {
+		input := Service{}
 		input.MapInput(msg.Data)
 
 		if parts[1] == "delete" {
@@ -216,9 +216,9 @@ func ServiceComplete(msg *nats.Msg) {
 
 // ServiceError : sets a services status to errored
 func ServiceError(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
+	s := Service{}
+	if ok := s.LoadFromInputOrFail(msg, &handler); ok {
+		input := Service{}
 		input.MapInput(msg.Data)
 
 		e.Status = "errored"

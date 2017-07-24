@@ -22,7 +22,7 @@ func setupNats() {
 func setupPg() {
 	db = c.Postgres("services")
 	for true {
-		if err = db.AutoMigrate(&Entity{}).Error; err != nil {
+		if err := db.AutoMigrate(&Entity{}).Error; err != nil {
 			log.Println("could not connect run migrations. retrying")
 			time.Sleep(time.Second * 10)
 			continue

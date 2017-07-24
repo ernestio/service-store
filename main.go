@@ -17,7 +17,6 @@ import (
 
 var n *nats.Conn
 var db *gorm.DB
-var err error
 var handler natsdb.Handler
 
 func startHandler() {

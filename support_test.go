@@ -5,8 +5,14 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
+	"io/ioutil"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 func setupTestSuite() {
@@ -31,4 +37,47 @@ func createEntities(n int) {
 		})
 		i++
 	}
+}
+
+func createTestDB(name string) error {
+	db, derr := sql.Open("postgres", "user=postgres sslmode=disable")
+	if derr != nil {
+		return derr
+	}
+
+	_, derr = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", pq.QuoteIdentifier(name)))
+	if derr != nil {
+		return derr
+	}
+
+	_, derr = db.Exec(fmt.Sprintf("CREATE DATABASE %s", pq.QuoteIdentifier(name)))
+	if derr != nil {
+		return derr
+	}
+
+	return nil
+}
+
+func createTestData(db *sql.DB, file string) error {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	statements := strings.Split(string(data), ";\r")
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, s := range statements {
+		_, err := tx.Exec(s)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
