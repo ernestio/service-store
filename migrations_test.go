@@ -8,19 +8,18 @@ import (
 	"log"
 	"testing"
 
-	"database/sql"
-
-	_ "github.com/lib/pq"
+	"github.com/jinzhu/gorm"
+	//	_ "github.com/lib/pq"
 
 	"github.com/stretchr/testify/suite"
 )
 
-const TESTDB = "services_test"
+const TESTDB = "test_services"
 
 // MigrationTestSuite : Test suite for migration
 type MigrationTestSuite struct {
 	suite.Suite
-	DB *sql.DB
+	DB *gorm.DB
 }
 
 // SetupTest : sets up test suite
@@ -30,27 +29,29 @@ func (suite *MigrationTestSuite) SetupTest() {
 		log.Fatal(err)
 	}
 
-	suite.DB, err = sql.Open("postgres", "user=postgres dbname="+TESTDB+" sslmode=disable")
+	err = createTestData(TESTDB, "tests/sql/services_test.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = createTestData(suite.DB, "tests/sql/services_test.sql")
+	suite.DB, err = gorm.Open("postgres", "user=postgres dbname="+TESTDB+" sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func (suite *MigrationTestSuite) TestMigration() {
+	scount := 0
+	bcount := 0
+
 	err := Migrate(suite.DB)
-
 	suite.Nil(err)
 
-	rows, err := suite.DB.Query("SELECT COUNT(*) AS count FROM services;")
-	suite.Nil(err)
+	suite.DB.Table("builds").Count(&bcount)
+	suite.Equal(bcount, 41)
 
-	suite.Nil(err)
-	//suite.Equal(count, 41)
+	suite.DB.Table("services").Count(&scount)
+	suite.Equal(scount, 21)
 }
 
 // TestMigrationTestSuite : Test suite for migration

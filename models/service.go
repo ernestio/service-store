@@ -6,6 +6,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"time"
 )
@@ -15,105 +16,90 @@ type Service struct {
 	ID           uint   `json:"id" gorm:"primary_key"`
 	GroupID      uint   `json:"group_id"`
 	DatacenterID uint   `json:"datacenter_id"`
-	Name         string `json:"name"`
-	Type         string `json:"type"`
+	Name         string `json:"name" gorm:"type:varchar(100);unique_index"`
 	Status       string `json:"status"`
-	Sync         bool   `json:"sync"`
-	SyncType     string `json:"sync_type"`
-	SyncInterval int    `json:"sync_interval"`
+	Options      Map    `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    *time.Time `json:"-" sql:"index"`
 }
 
+// TableName : set Entity's table name to be services
+func (s *Service) TableName() string {
+	return "services"
+}
+
+// HasID : determines if the current entity has an id or not
+func (s *Service) HasID() bool {
+	return s.ID != 0
+}
+
 // Find : based on the defined fields for the current entity
 // will perform a search on the database
-func (s *Service) Find() []Service {
+func Find(q map[string]interface{}) []Service {
 	var services []Service
 
-	if s.Name != "" && s.GroupID != 0 {
-		if s.ID != 0 {
-
-			DB.Where("name = ?", s.Name).Where("group_id = ?", s.GroupID).Where("id = ?", s.ID).Find(&services)
-		} else {
-			DB.Where("name = ?", s.Name).Where("group_id = ?", s.GroupID).Find(&services)
-		}
-	} else {
-		if s.Name != "" && s.ID != 0 {
-			DB.Where("name = ?", s.Name).Where("id = ?", s.ID).Find(&services)
-		} else if s.Name != "" {
-			DB.Where("name = ?", s.Name).Find(&services)
-		} else if s.GroupID != 0 {
-			DB.Where("group_id = ?", s.GroupID).Find(&services)
-		} else if s.DatacenterID != 0 {
-			DB.Where("datacenter_id = ?", s.DatacenterID).Find(&services)
-		}
-	}
+	query(q, services)
 
 	return services
 }
 
 // MapInput : maps the input []byte on the current entity
-func (s *Service) MapInput(body []byte) {
-	if err := json.Unmarshal(body, &e); err != nil {
-		log.Println(err)
-	}
+func (s *Service) MapInput(body []byte) error {
+	return json.Unmarshal(body, s)
 }
 
-// HasID : determines if the current entity has an id or not
-func (s *Service) HasID() bool {
-	if s.ID == 0 {
-		return false
-	}
-	return true
-}
-
-// LoadFromInput : Will load from a []byte input the database stored entity
-func (s *Service) Load(data []byte) bool {
+// Load : Will load from a []byte input the database stored entity
+func (s *Service) Load(data []byte) error {
 	var stored Service
 
-	s.MapInput(msg)
+	err := s.MapInput(data)
+	if err != nil {
+		return err
+	}
+
 	if s.ID != 0 {
 		DB.Where("id = ?", s.ID).First(&stored)
 	} else if s.Name != "" {
 		DB.Where("name = ?", s.Name).First(&stored)
 	}
+
 	if &stored == nil {
-		return false
+		return errors.New("could not find service")
 	}
-	if ok := stored.HasID(); !ok {
-		return false
+
+	if stored.HasID() != true {
+		return errors.New("stored component has no id")
 	}
+
 	s.ID = stored.ID
 	s.Name = stored.Name
 	s.GroupID = stored.GroupID
 	s.DatacenterID = stored.DatacenterID
-	s.Type = stored.Type
 	s.Status = stored.Status
-	s.Sync = stored.Sync
-	s.SyncType = stored.SyncType
-	s.SyncInterval = stored.SyncInterval
+	s.Options = stored.Options
 
-	return true
+	return nil
 }
 
 // Update : It will update the current entity with the input []byte
 func (s *Service) Update(body []byte) error {
-	s.MapInput(body)
+	err := s.MapInput(body)
+	if err != nil {
+		return err
+	}
+
 	stored := Service{}
 	DB.Where("id = ?", s.ID).First(&stored)
 	stored.ID = s.ID
 	stored.Name = s.Name
 	stored.GroupID = s.GroupID
 	stored.DatacenterID = s.DatacenterID
-	stored.Type = s.Type
 	stored.Status = s.Status
-	stored.Sync = s.Sync
-	stored.SyncType = s.SyncType
-	stored.SyncInterval = s.SyncInterval
+	stored.Options = s.Options
 
 	DB.Save(&stored)
-	e = &stored
+	s = &stored
 
 	return nil
 }
@@ -130,7 +116,7 @@ func (s *Service) Save() error {
 	tx := DB.Begin()
 	tx.Exec("set transaction isolation level serializable")
 
-	err := tx.Save(e).Error
+	err := tx.Save(s).Error
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()

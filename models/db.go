@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-func supported(x interface{}) []string {
+func structFields(x interface{}) []string {
 	var sp []string
 
 	rx := reflect.TypeOf(x)
@@ -24,6 +24,25 @@ func supported(x interface{}) []string {
 	return sp
 }
 
-func buildQuery() {
+func supported(t interface{}, f string) bool {
+	for _, field := range structFields(t) {
+		if f == field {
+			return true
+		}
+	}
+	return false
+}
 
+func query(q map[string]interface{}, results interface{}) {
+	qdb := DB
+
+	t := reflect.TypeOf(results).Elem().Kind()
+
+	for k, v := range q {
+		if supported(t, k) {
+			qdb = qdb.Where("? = ?", k, v)
+		}
+	}
+
+	qdb.Find(results)
 }

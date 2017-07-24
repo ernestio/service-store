@@ -8,13 +8,13 @@ import (
 	"database/sql"
 	"fmt"
 	"io/ioutil"
-	"strconv"
+	"log"
 	"strings"
-	"time"
 
 	"github.com/lib/pq"
 )
 
+/*
 func setupTestSuite() {
 	db.Unscoped().Delete(Entity{})
 }
@@ -23,7 +23,7 @@ func createEntities(n int) {
 	i := 0
 	for i < n {
 		x := strconv.Itoa(i)
-		db.Create(&Entity{
+		db.Create(&Service{
 			Name:         "Test" + x,
 			UUID:         "random_string" + x,
 			GroupID:      1,
@@ -38,6 +38,7 @@ func createEntities(n int) {
 		i++
 	}
 }
+*/
 
 func createTestDB(name string) error {
 	db, derr := sql.Open("postgres", "user=postgres sslmode=disable")
@@ -58,7 +59,12 @@ func createTestDB(name string) error {
 	return nil
 }
 
-func createTestData(db *sql.DB, file string) error {
+func createTestData(dbname string, file string) error {
+	db, err := sql.Open("postgres", "user=postgres dbname="+dbname+" sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err

@@ -4,16 +4,9 @@
 
 package main
 
-import (
-	"fmt"
-	"testing"
-	"time"
+//import . "github.com/smartystreets/goconvey/convey"
 
-	"github.com/nats-io/nats"
-
-	. "github.com/smartystreets/goconvey/convey"
-)
-
+/*
 func TestSetComponentHandler(t *testing.T) {
 	setupNats()
 	_, _ = n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
@@ -89,3 +82,4 @@ func TestSetComponentHandler(t *testing.T) {
 	})
 
 }
+*/

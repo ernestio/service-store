@@ -5,31 +5,21 @@
 package main
 
 import (
-	"log"
 	"runtime"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nats-io/nats"
-	"github.com/r3labs/natsdb"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var n *nats.Conn
 var db *gorm.DB
-var handler natsdb.Handler
 
+//var handler natsdb.Handler
+
+/*
 func startHandler() {
-	handler = natsdb.Handler{
-		NotFoundErrorMessage:   natsdb.NotFound.Encoded(),
-		UnexpectedErrorMessage: natsdb.Unexpected.Encoded(),
-		DeletedMessage:         []byte(`{"status":"deleted"}`),
-		Nats:                   n,
-		NewModel: func() natsdb.Model {
-			return &Entity{}
-		},
-	}
-
 	if _, err := n.Subscribe("service.get", handler.Get); err != nil {
 		log.Panic(err)
 	}
@@ -42,47 +32,13 @@ func startHandler() {
 	if _, err := n.Subscribe("service.find", handler.Find); err != nil {
 		log.Panic(err)
 	}
-
-	if _, err := n.Subscribe("service.get.mapping", GetMapping); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.set.mapping", SetMapping); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.set.mapping.component", SetComponent); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.del.mapping.component", DeleteComponent); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.set.mapping.change", SetChange); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.del.mapping.change", DeleteChange); err != nil {
-		log.Panic(err)
-	}
-
-	if _, err := n.Subscribe("service.get.definition", GetDefinition); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.Subscribe("service.set.definition", SetDefinition); err != nil {
-		log.Panic(err)
-	}
-
-	if _, err := n.Subscribe("service.*.done", ServiceComplete); err != nil {
-		log.Panic(err)
-	}
-
-	if _, err := n.Subscribe("service.*.error", ServiceError); err != nil {
-		log.Panic(err)
-	}
-
 }
+*/
 
 func main() {
 	setupNats()
 	setupPg()
-	startHandler()
+	//startHandler()
 
 	runtime.Goexit()
 }
