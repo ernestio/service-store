@@ -13,14 +13,14 @@ import (
 
 // Service : the database mapped entity
 type Service struct {
-	ID           uint   `json:"id" gorm:"primary_key"`
-	GroupID      uint   `json:"group_id"`
-	DatacenterID uint   `json:"datacenter_id"`
-	Name         string `json:"name" gorm:"type:varchar(100);unique_index"`
-	Status       string `json:"status"`
-	Options      Map    `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uint       `json:"id" gorm:"primary_key"`
+	GroupID      uint       `json:"group_id"`
+	DatacenterID uint       `json:"datacenter_id"`
+	Name         string     `json:"name" gorm:"type:varchar(100);unique_index"`
+	Status       string     `json:"status"`
+	Options      Map        `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 	DeletedAt    *time.Time `json:"-" sql:"index"`
 }
 
@@ -36,10 +36,28 @@ func (s *Service) HasID() bool {
 
 // Find : based on the defined fields for the current entity
 // will perform a search on the database
-func Find(q map[string]interface{}) []Service {
+func (s *Service) Find() []Service {
 	var services []Service
 
-	query(q, services)
+	fields := "id, group_id, datacenter_id, name, status, options"
+
+	if s.Name != "" && s.GroupID != 0 {
+		if s.ID != 0 {
+			DB.Select(fields).Where("name = ?", s.Name).Where("group_id = ?", s.GroupID).Where("id = ?", s.ID).Find(&services)
+		} else {
+			DB.Select(fields).Where("name = ?", s.Name).Where("group_id = ?", s.GroupID).Find(&services)
+		}
+	} else {
+		if s.Name != "" && s.ID != 0 {
+			DB.Select(fields).Where("name = ?", s.Name).Where("id = ?", s.ID).Find(&services)
+		} else if s.Name != "" {
+			DB.Select(fields).Where("name = ?", s.Name).Find(&services)
+		} else if s.GroupID != 0 {
+			DB.Select(fields).Where("group_id = ?", s.GroupID).Find(&services)
+		} else if s.DatacenterID != 0 {
+			DB.Select(fields).Where("datacenter_id = ?", s.DatacenterID).Find(&services)
+		}
+	}
 
 	return services
 }

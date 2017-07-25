@@ -8,18 +8,20 @@ import (
 	"log"
 	"testing"
 
+	"github.com/ernestio/service-store/models"
 	"github.com/jinzhu/gorm"
-	//	_ "github.com/lib/pq"
 
 	"github.com/stretchr/testify/suite"
 )
 
-const TESTDB = "test_services"
+const TESTDB = "test_migrations"
 
 // MigrationTestSuite : Test suite for migration
 type MigrationTestSuite struct {
 	suite.Suite
-	DB *gorm.DB
+	DB       *gorm.DB
+	services map[string]models.Service
+	builds   map[string]models.Build
 }
 
 // SetupTest : sets up test suite
@@ -38,20 +40,45 @@ func (suite *MigrationTestSuite) SetupTest() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	loadJSON("./tests/json/valid-services.json", &suite.services)
+	loadJSON("./tests/json/valid-builds.json", &suite.builds)
 }
 
 func (suite *MigrationTestSuite) TestMigration() {
-	scount := 0
-	bcount := 0
+	var builds []models.Build
+	var services []models.Service
 
 	err := Migrate(suite.DB)
 	suite.Nil(err)
 
-	suite.DB.Table("builds").Count(&bcount)
-	suite.Equal(bcount, 41)
+	suite.DB.Table("builds").Find(&builds)
+	suite.Equal(len(builds), 41)
 
-	suite.DB.Table("services").Count(&scount)
-	suite.Equal(scount, 21)
+	for _, b := range builds {
+		vb := suite.builds[b.UUID]
+		suite.NotNil(vb)
+		suite.Equal(b.ServiceID, vb.ServiceID)
+		suite.Equal(b.UserID, vb.UserID)
+		suite.Equal(b.Type, vb.Type)
+		suite.Equal(b.Status, vb.Status)
+		suite.NotEqual(b.Definition, "")
+
+		action, ok := b.Mapping["action"].(string)
+		suite.True(ok)
+		suite.Equal(action, "service.create")
+	}
+
+	suite.DB.Table("services").Find(&services)
+	suite.Equal(len(services), 21)
+	for _, s := range services {
+		vs := suite.services[s.Name]
+		suite.NotNil(vs)
+		suite.Equal(s.ID, vs.ID)
+		suite.Equal(s.GroupID, vs.GroupID)
+		suite.Equal(s.DatacenterID, vs.DatacenterID)
+		suite.Equal(s.Status, vs.Status)
+	}
 }
 
 // TestMigrationTestSuite : Test suite for migration

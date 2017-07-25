@@ -12,7 +12,7 @@ import (
 )
 
 // DepreciatedColumns : a list of columns that have been removed from the schema
-var DepreciatedColumns = []string{"options", "sync", "sync_type", "sync_interval", "definition", "mapping", "endpoint", "last_known_error", "version", "user_id", "uuid", "type"}
+var DepreciatedColumns = []string{"options", "sync", "sync_type", "sync_interval", "definition", "mapping", "last_known_error", "version", "user_id", "uuid", "type"}
 
 // Migrate existing database schemas to new setup
 func Migrate(db *gorm.DB) error {
@@ -24,7 +24,6 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	db.CreateTable(models.Build{})
-	//db.AutoMigrate(models.Service{}, models.Build{})
 
 	// Create builds from service records
 	db.Table("services").Select("id as service_id, uuid, user_id, status, mapping, definition, created_at, updated_at").Find(&builds)
@@ -50,9 +49,6 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	db.AutoMigrate(models.Service{})
-
-	// setup table relationshios
-	db.Model(&models.Service{}).Related(&models.Build{})
 
 	return nil
 }

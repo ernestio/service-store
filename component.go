@@ -8,9 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-
-	"github.com/nats-io/nats"
-	"github.com/r3labs/natsdb"
 )
 
 // Component : represents a component from a service mapping
@@ -41,26 +38,4 @@ func (c *Component) GetComponentID() (string, error) {
 	}
 
 	return id, nil
-}
-
-// LoadFromInputOrFail : Will try to load from the input an existing component,
-// or will call the handler to Fail the nats message
-func (c *Component) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool {
-	c.MapInput(msg.Data)
-
-	_, err := c.GetServiceID()
-	if err != nil {
-		log.Println(err)
-		h.Fail(msg)
-		return false
-	}
-
-	_, err = c.GetComponentID()
-	if err != nil {
-		log.Println(err)
-		h.Fail(msg)
-		return false
-	}
-
-	return true
 }

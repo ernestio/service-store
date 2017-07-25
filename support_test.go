@@ -6,6 +6,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -86,4 +87,18 @@ func createTestData(dbname string, file string) error {
 	}
 
 	return tx.Commit()
+}
+
+func loadJSON(path string, m interface{}) {
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		panic(err)
+	}
+
 }
