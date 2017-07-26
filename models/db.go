@@ -5,6 +5,7 @@
 package models
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/jinzhu/gorm"
@@ -18,14 +19,15 @@ func structFields(x interface{}) []string {
 	rx := reflect.TypeOf(x)
 
 	for i := 0; i < rx.NumField(); i++ {
+
 		sp = append(sp, rx.Field(i).Tag.Get("json"))
 	}
 
 	return sp
 }
 
-func supported(t interface{}, f string) bool {
-	for _, field := range structFields(t) {
+func supported(f string, fields []string) bool {
+	for _, field := range fields {
 		if f == field {
 			return true
 		}
@@ -33,16 +35,15 @@ func supported(t interface{}, f string) bool {
 	return false
 }
 
-func query(q map[string]interface{}, results interface{}) {
+func query(q map[string]interface{}, fields []string) *gorm.DB {
 	qdb := DB
 
-	t := reflect.TypeOf(results).Elem().Kind()
-
 	for k, v := range q {
-		if supported(t, k) {
-			qdb = qdb.Where("? = ?", k, v)
+		if supported(k, fields) {
+			qs := fmt.Sprintf("%s = ?", k)
+			qdb = qdb.Where(qs, v)
 		}
 	}
 
-	qdb.Find(results)
+	return qdb
 }

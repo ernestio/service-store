@@ -40,5 +40,7 @@ func main() {
 	setupPg()
 	//startHandler()
 
+	Migrate(db)
+
 	runtime.Goexit()
 }

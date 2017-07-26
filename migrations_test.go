@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/ernestio/service-store/models"
+	"github.com/ernestio/service-store/tests"
 	"github.com/jinzhu/gorm"
 
 	"github.com/stretchr/testify/suite"
 )
 
-const TESTDB = "test_migrations"
+const TESTMIGRATIONDB = "test_migrations"
 
 // MigrationTestSuite : Test suite for migration
 type MigrationTestSuite struct {
@@ -26,23 +27,23 @@ type MigrationTestSuite struct {
 
 // SetupTest : sets up test suite
 func (suite *MigrationTestSuite) SetupTest() {
-	err := createTestDB(TESTDB)
+	err := tests.CreateTestDB(TESTMIGRATIONDB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = createTestData(TESTDB, "tests/sql/services_test.sql")
+	err = tests.CreateTestData(TESTMIGRATIONDB, "tests/sql/services_test.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	suite.DB, err = gorm.Open("postgres", "user=postgres dbname="+TESTDB+" sslmode=disable")
+	suite.DB, err = gorm.Open("postgres", "user=postgres dbname="+TESTMIGRATIONDB+" sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	loadJSON("./tests/json/valid-services.json", &suite.services)
-	loadJSON("./tests/json/valid-builds.json", &suite.builds)
+	tests.LoadJSON("./tests/json/valid-services.json", &suite.services)
+	tests.LoadJSON("./tests/json/valid-builds.json", &suite.builds)
 }
 
 func (suite *MigrationTestSuite) TestMigration() {

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var BuildFields = structFields(Build{})
+
 // Build : stores build data
 type Build struct {
 	ID         uint       `json:"-" gorm:"primary_key"`
@@ -26,4 +28,11 @@ type Build struct {
 // TableName : set Entity's table name to be builds
 func (b *Build) TableName() string {
 	return "builds"
+}
+
+// FindBuilds : finds a build
+func FindBuilds(q map[string]interface{}) []Build {
+	var builds []Build
+	query(q, BuildFields).Find(&builds)
+	return builds
 }
