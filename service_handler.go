@@ -16,52 +16,49 @@ import (
 
 // ServiceView : renders an old singular service by joining data on builds and services tables
 type ServiceView struct {
-	ID             uint       `json:"-" gorm:"primary_key"`
-	UUID           string     `json:"id"`
-	GroupID        uint       `json:"group_id"`
-	UserID         uint       `json:"user_id"`
-	DatacenterID   uint       `json:"datacenter_id"`
-	Name           string     `json:"name"`
-	Type           string     `json:"type"`
-	Version        time.Time  `json:"version"`
-	Status         string     `json:"status"`
-	LastKnownError string     `json:"last_known_error"`
-	Options        string     `json:"options"`
-	Definition     string     `json:"definition"`
-	Mapping        models.Map `json:"mapping" gorm:"type:text;"`
+	ID           uint       `json:"-" gorm:"primary_key"`
+	UUID         string     `json:"id"`
+	GroupID      uint       `json:"group_id"`
+	UserID       uint       `json:"user_id"`
+	DatacenterID uint       `json:"datacenter_id"`
+	Name         string     `json:"name"`
+	Type         string     `json:"type"`
+	Version      time.Time  `json:"version"`
+	Status       string     `json:"status"`
+	Options      models.Map `json:"options"`
+	Definition   string     `json:"definition"`
+	Mapping      models.Map `json:"mapping" gorm:"type:text;"`
 }
 
 // Find : based on the defined fields for the current entity
 // will perform a search on the database
-func (e *ServiceView) Find() []interface{} {
-	entities := []ServiceView{}
-	//fields := "uuid, group_id, user_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
+func (s *ServiceView) Find() []interface{} {
+	services := []*ServiceView{}
 
-	if e.Name != "" && e.GroupID != 0 {
-		if e.UUID != "" {
-			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
+	db.LogMode(true)
+	//q := db.Raw("SELECT builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options FROM services INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+
+	if s.Name != "" && s.GroupID != 0 {
+		if s.UUID != "" {
+			q.Where("service.name = ?", s.Name).Where("service.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID).Order("version desc").Find(&services)
 		} else {
-			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
+			q.Where("service.name = ?", s.Name).Where("service.group_id = ?", s.GroupID).Order("version desc").Find(&services)
 		}
 	} else {
-		if e.Name != "" && e.UUID != "" {
-			db.Select(fields).Where("name = ?", e.Name).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
-		} else if e.Name != "" {
-			db.Select(fields).Where("name = ?", e.Name).Order("version desc").Find(&entities)
-		} else if e.GroupID != 0 {
-			db.Select(fields).Where("group_id = ?", e.GroupID).Order("version desc").Find(&entities)
-		} else if e.DatacenterID != 0 {
-			db.Select(fields).Where("datacenter_id = ?", e.DatacenterID).Order("version desc").Find(&entities)
+		if s.Name != "" && s.UUID != "" {
+			q.Where("service.name = ?", s.Name).Where("builds.uuid = ?", s.UUID).Order("version desc").Find(&services)
+		} else if s.Name != "" {
+			q.Where("service.name = ?", s.Name).Order("version desc").Find(&services)
+		} else if s.GroupID != 0 {
+			q.Where("service.group_id = ?", s.GroupID).Order("version desc").Find(&services)
+		} else if s.DatacenterID != 0 {
+			q.Where("service.datacenter_id = ?", s.DatacenterID).Order("version desc").Find(&services)
 		}
 	}
+	db.LogMode(false)
 
-	list := make([]interface{}, len(entities))
-	for i, s := range entities {
-		s.Mapping = nil
-		list[i] = s
-	}
-
-	return list
+	return nil
 }
 
 // MapInput : maps the input []byte on the current entity
@@ -80,95 +77,116 @@ func (e *ServiceView) HasID() bool {
 }
 
 // LoadFromInput : Will load from a []byte input the database stored entity
-func (e *ServiceView) LoadFromInput(msg []byte) bool {
-	e.MapInput(msg)
+func (s *ServiceView) LoadFromInput(msg []byte) bool {
+	s.MapInput(msg)
 	var stored ServiceView
-	if e.UUID != "" {
-		db.Where("uuid = ?", e.UUID).First(&stored)
-	} else if e.Name != "" {
-		db.Where("name = ?", e.Name).First(&stored)
+
+	db.LogMode(true)
+	q := db.Table("services").Select("builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+
+	if s.UUID != "" {
+		q.Where("builds.uuid = ?", s.UUID).First(&stored)
+	} else if s.Name != "" {
+		q.Where("service.name = ?", s.Name).First(&stored)
 	}
+	db.LogMode(false)
+
 	if &stored == nil {
 		return false
 	}
 	if ok := stored.HasID(); !ok {
 		return false
 	}
-	e.Name = stored.Name
-	e.UUID = stored.UUID
-	e.GroupID = stored.GroupID
-	e.UserID = stored.UserID
-	e.DatacenterID = stored.DatacenterID
-	e.Type = stored.Type
-	e.Version = stored.Version
-	e.Status = stored.Status
-	e.LastKnownError = stored.LastKnownError
-	e.Options = stored.Options
-	e.Definition = stored.Definition
-	e.Mapping = stored.Mapping
-	e.ID = stored.ID
+	s.Name = stored.Name
+	s.UUID = stored.UUID
+	s.GroupID = stored.GroupID
+	s.UserID = stored.UserID
+	s.DatacenterID = stored.DatacenterID
+	s.Type = stored.Type
+	s.Version = stored.Version
+	s.Status = stored.Status
+	s.Options = stored.Options
+	s.Definition = stored.Definition
+	s.Mapping = stored.Mapping
+	s.ID = stored.ID
 
 	return true
 }
 
 // LoadFromInputOrFail : Will try to load from the input an existing entity,
 // or will call the handler to Fail the nats message
-func (e *ServiceView) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool {
+func (s *ServiceView) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool {
 	stored := &ServiceView{}
 	ok := stored.LoadFromInput(msg.Data)
 	if !ok {
 		h.Fail(msg)
 	}
-	*e = *stored
+	*s = *stored
 
 	return ok
 }
 
 // Update : It will update the current entity with the input []byte
-func (e *ServiceView) Update(body []byte) error {
-	e.MapInput(body)
-	stored := ServiceView{}
-	db.Where("uuid = ?", e.UUID).First(&stored)
-	stored.Name = e.Name
-	stored.UUID = e.UUID
-	stored.GroupID = e.GroupID
-	stored.UserID = e.UserID
-	stored.DatacenterID = e.DatacenterID
-	stored.Type = e.Type
-	stored.Version = e.Version
-	stored.Definition = e.Definition
-	stored.Status = e.Status
-	stored.LastKnownError = e.LastKnownError
-	stored.Options = e.Options
-	stored.Mapping = e.Mapping
-	stored.ID = e.ID
+func (s *ServiceView) Update(body []byte) error {
+	s.MapInput(body)
 
-	db.Save(&stored)
-	e = &stored
+	var build models.Build
+	var service models.Service
+
+	if s.Name == "" {
+		log.Println("no service name specified!")
+		return nil
+	}
+
+	db.Where("name = ?", s.Name).First(&service)
+
+	service.Name = s.Name
+	service.GroupID = s.GroupID
+	service.DatacenterID = s.DatacenterID
+	service.Options = s.Options
+
+	db.Save(&service)
+
+	db.Where("uuid = ?", s.UUID).First(&build)
+
+	build.ServiceID = service.ID
+	build.UserID = s.UserID
+	build.Type = s.Type
+	build.Status = s.Status
+	build.Definition = s.Definition
+	build.Mapping = s.Mapping
+
+	db.Save(&build)
+
+	s.ID = service.ID
 
 	return nil
 }
 
 // Delete : Will delete from database the current ServiceView
-func (e *ServiceView) Delete() error {
-	db.Unscoped().Where("name = ?", e.Name).Delete(ServiceView{})
+func (s *ServiceView) Delete() error {
+	db.Unscoped().Where("name = ?", s.Name).Delete(ServiceView{})
 
 	return nil
 }
 
 // Save : Persists current entity on database
-func (e *ServiceView) Save() error {
-	tx := db.Begin()
-	tx.Exec("set transaction isolation level serializable")
+func (s *ServiceView) Save() error {
+	panic("fuck this shit!")
 
-	err := tx.Save(e).Error
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return err
-	}
+	/*
+		tx := db.Begin()
+		tx.Exec("set transaction isolation level serializable")
 
-	tx.Commit()
+		err := tx.Save(s).Error
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return err
+		}
+
+		tx.Commit()
+	*/
 
 	return nil
 }

@@ -32,7 +32,7 @@ func (suite *MigrationTestSuite) SetupTest() {
 		log.Fatal(err)
 	}
 
-	err = tests.CreateTestData(TESTMIGRATIONDB, "tests/sql/services_test.sql")
+	err = tests.CreateMigrationData(TESTMIGRATIONDB, "tests/sql/services_test.sql")
 	if err != nil {
 		log.Fatal(err)
 	}

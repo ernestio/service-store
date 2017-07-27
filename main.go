@@ -5,10 +5,12 @@
 package main
 
 import (
+	"log"
 	"runtime"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nats-io/nats"
+	"github.com/r3labs/natsdb"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -16,10 +18,19 @@ import (
 var n *nats.Conn
 var db *gorm.DB
 
-//var handler natsdb.Handler
+var handler natsdb.Handler
 
-/*
 func startHandler() {
+	handler = natsdb.Handler{
+		NotFoundErrorMessage:   natsdb.NotFound.Encoded(),
+		UnexpectedErrorMessage: natsdb.Unexpected.Encoded(),
+		DeletedMessage:         []byte(`{"status":"deleted"}`),
+		Nats:                   n,
+		NewModel: func() natsdb.Model {
+			return &ServiceView{}
+		},
+	}
+
 	if _, err := n.Subscribe("service.get", handler.Get); err != nil {
 		log.Panic(err)
 	}
@@ -33,12 +44,11 @@ func startHandler() {
 		log.Panic(err)
 	}
 }
-*/
 
 func main() {
 	setupNats()
-	setupPg()
-	//startHandler()
+	setupPg("services")
+	startHandler()
 
 	Migrate(db)
 

@@ -34,7 +34,7 @@ func CreateTestDB(name string) error {
 	return nil
 }
 
-func CreateTestData(dbname string, file string) error {
+func CreateMigrationData(dbname string, file string) error {
 	db, err := sql.Open("postgres", "user=postgres dbname="+dbname+" sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
