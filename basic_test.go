@@ -185,6 +185,28 @@ func TestGetHandler(t *testing.T) {
 		})
 	})
 
+	Convey("Scenario: find services by multiple ids", t, func() {
+		setupTestSuite()
+		Convey("Given services exist on the database", func() {
+			createEntities(20)
+			Convey("Then I should get a list of services", func() {
+				msg, _ := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
+				list := []Entity{}
+				listResult := []Entity{}
+				err = json.Unmarshal(msg.Data, &list)
+				So(err, ShouldBeNil)
+				msg, _ = n.Request("service.find", []byte(`{"names":["`+fmt.Sprint(list[0].Name)+`","`+fmt.Sprint(list[1].Name)+`","`+fmt.Sprint(list[2].Name)+`"]}`), time.Second)
+				err = json.Unmarshal(msg.Data, &listResult)
+				So(err, ShouldBeNil)
+				So(len(listResult), ShouldEqual, 3)
+				msg, _ = n.Request("service.find", []byte(`{"ids":["`+fmt.Sprint(list[0].UUID)+`","`+fmt.Sprint(list[1].UUID)+`","`+fmt.Sprint(list[2].UUID)+`"]}`), time.Second)
+				err = json.Unmarshal(msg.Data, &listResult)
+				So(err, ShouldBeNil)
+				So(len(listResult), ShouldEqual, 3)
+			})
+		})
+	})
+
 	Convey("Scenario: getting setting a service mapping", t, func() {
 		setupTestSuite()
 		Convey("Given the service does not exist on the database", func() {

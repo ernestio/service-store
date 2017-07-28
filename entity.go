@@ -16,6 +16,8 @@ import (
 // Entity : the database mapped entity
 type Entity struct {
 	ID             uint      `json:"-" gorm:"primary_key"`
+	IDs            []string  `json:"ids" gorm:"-"`
+	Names          []string  `json:"names" gorm:"-"`
 	UUID           string    `json:"id"`
 	GroupID        uint      `json:"group_id"`
 	UserID         uint      `json:"user_id"`
@@ -47,7 +49,11 @@ func (Entity) TableName() string {
 func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
 	fields := "uuid, group_id, user_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
-	if e.Name != "" && e.GroupID != 0 {
+	if len(e.IDs) > 0 {
+		db.Where("uuid in (?)", e.IDs).Find(&entities)
+	} else if len(e.Names) > 0 {
+		db.Where("name in (?)", e.Names).Find(&entities)
+	} else if e.Name != "" && e.GroupID != 0 {
 		if e.UUID != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
 		} else {
