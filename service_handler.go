@@ -130,20 +130,30 @@ func (s *ServiceView) LoadFromInputOrFail(msg *nats.Msg, h *natsdb.Handler) bool
 func (s *ServiceView) Update(body []byte) error {
 	s.MapInput(body)
 
-	var build models.Build
-	var service models.Service
-
 	if s.Name == "" {
 		log.Println("no service name specified!")
 		return nil
 	}
 
+	service := models.Service{
+		Options: s.Options,
+		Status: s.Status,
+	}
+
+	err := service.Update()
+	if err != nil {
+		return err
+	}
+
+	build := models.Build{
+		Status: s.Status,
+		Definition: s.Definition,
+		Mapping: s.Mapping,
+	}
+
 	db.Where("name = ?", s.Name).First(&service)
 
-	service.Name = s.Name
-	service.GroupID = s.GroupID
-	service.DatacenterID = s.DatacenterID
-	service.Options = s.Options
+
 
 	db.Save(&service)
 
@@ -152,9 +162,7 @@ func (s *ServiceView) Update(body []byte) error {
 	build.ServiceID = service.ID
 	build.UserID = s.UserID
 	build.Type = s.Type
-	build.Status = s.Status
-	build.Definition = s.Definition
-	build.Mapping = s.Mapping
+
 
 	db.Save(&build)
 
@@ -172,21 +180,23 @@ func (s *ServiceView) Delete() error {
 
 // Save : Persists current entity on database
 func (s *ServiceView) Save() error {
-	panic("fuck this shit!")
+	panic("saving!")
 
-	/*
-		tx := db.Begin()
-		tx.Exec("set transaction isolation level serializable")
+	tx := db.Begin()
+	tx.Exec("set transaction isolation level serializable")
 
-		err := tx.Save(s).Error
-		if err != nil {
-			log.Println(err)
-			tx.Rollback()
-			return err
-		}
+	service := models.Service{
+		Name:
+	}
 
-		tx.Commit()
-	*/
+	err := tx.Save(s).Error
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
 
 	return nil
 }

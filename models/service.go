@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// ServiceFields ...
 var ServiceFields = structFields(Service{})
 
 // Service : the database mapped entity
@@ -34,4 +35,36 @@ func FindServices(q map[string]interface{}) []Service {
 	var services []Service
 	query(q, ServiceFields).Find(&services)
 	return services
+}
+
+// GetService ....
+func GetService(q map[string]interface{}) Service {
+	var service Service
+	query(q, ServiceFields).First(service)
+	return service
+}
+
+// Create ...
+func (s *Service) Create() error {
+	return DB.Create(s).Error
+}
+
+// Update ...
+func (s *Service) Update() error {
+	var stored *Service
+
+	err := DB.Where("id = ?", s.ID).First(stored).Error
+	if err != nil {
+		return err
+	}
+
+	stored.Options = s.Options
+	stored.Status = s.Status
+
+	return DB.Save(stored).Error
+}
+
+// Delete ...
+func (s *Service) Delete() error {
+	return DB.Delete(s).Error
 }

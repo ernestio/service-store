@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// DB ...
 var DB *gorm.DB
 
 func structFields(x interface{}) []string {

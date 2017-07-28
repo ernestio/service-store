@@ -8,13 +8,14 @@ import (
 	"time"
 )
 
+// BuildFields ...
 var BuildFields = structFields(Build{})
 
 // Build : stores build data
 type Build struct {
 	ID         uint       `json:"-" gorm:"primary_key"`
 	UUID       string     `json:"id"`
-	ServiceID  uint       `json:"service_id"`
+	ServiceID  uint       `json:"service_id" gorm:"ForeignKey:UserRefer"`
 	UserID     uint       `json:"user_id"`
 	Type       string     `json:"type"`
 	Status     string     `json:"status"`
@@ -35,4 +36,37 @@ func FindBuilds(q map[string]interface{}) []Build {
 	var builds []Build
 	query(q, BuildFields).Find(&builds)
 	return builds
+}
+
+// GetBuild ...
+func GetBuild(q map[string]interface{}) Build {
+	var build Build
+	query(q, BuildFields).First(build)
+	return build
+}
+
+// Create ...
+func (b *Build) Create() error {
+	return DB.Create(b).Error
+}
+
+// Update ...
+func (b *Build) Update() error {
+	var stored *Build
+
+	err := DB.Where("uuid = ?", b.UUID).First(stored).Error
+	if err != nil {
+		return err
+	}
+
+	stored.Status = b.Status
+	stored.Definition = b.Definition
+	stored.Mapping = b.Mapping
+
+	return DB.Save(stored).Error
+}
+
+// Delete ...
+func (b *Build) Delete() error {
+	return DB.Delete(b).Error
 }
