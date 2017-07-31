@@ -35,11 +35,34 @@ func CreateTestData(db *gorm.DB, count int) {
 
 	for i := 1; i <= count; i++ {
 		db.Create(&models.Build{
-			UUID:       "uuid-" + strconv.Itoa(i),
-			ServiceID:  uint(i),
-			UserID:     uint(i),
-			Status:     "in_progress",
-			Mapping:    map[string]interface{}{},
+			UUID:      "uuid-" + strconv.Itoa(i),
+			ServiceID: uint(i),
+			UserID:    uint(i),
+			Status:    "in_progress",
+			Mapping: map[string]interface{}{
+				"id":     "uuid-" + strconv.Itoa(i),
+				"action": "service.create",
+				"components": []map[string]interface{}{
+					{
+						"_component_id": "network::test-1",
+						"_state":        "running",
+					},
+					{
+						"_component_id": "network::test-2",
+						"_state":        "running",
+					},
+				},
+				"changes": []map[string]interface{}{
+					{
+						"_component_id": "network::test-3",
+						"_state":        "waiting",
+					},
+					{
+						"_component_id": "network::test-4",
+						"_state":        "waiting",
+					},
+				},
+			},
 			Definition: "yaml",
 		})
 	}
@@ -55,17 +78,16 @@ func TestHandler(t *testing.T) {
 	})
 
 	setupPg("test_handlers")
-	//db.LogMode(true)
 	db.AutoMigrate(models.Service{}, models.Build{})
 
 	startHandler()
 
 	db.Unscoped().Delete(models.Service{}, models.Build{})
-	CreateTestData(db, 10)
+	CreateTestData(db, 20)
 
 	Convey("Scenario: getting a service", t, func() {
 		Convey("Given the service does not exist on the database", func() {
-			msg, err := n.Request("service.get", []byte(`{"id":"32"}`), time.Second)
+			msg, err := n.Request("service.get", []byte(`{"id":"uuid-9999"}`), time.Second)
 			So(string(msg.Data), ShouldEqual, string(handler.NotFoundErrorMessage))
 			So(err, ShouldEqual, nil)
 		})
@@ -95,9 +117,31 @@ func TestHandler(t *testing.T) {
 			So(output.Name, ShouldEqual, "Test3")
 			So(output.Version, ShouldNotBeNil)
 			So(output.Status, ShouldEqual, "in_progress")
-			So(output.Definition, ShouldEqual, "yaml")
 			So(output.Options["sync"], ShouldBeTrue)
 			So(err, ShouldEqual, nil)
+		})
+	})
+
+	Convey("Scenario: find services", t, func() {
+		Convey("Given services exist on the database", func() {
+			Convey("Then I should get a list of services", func() {
+				msg, err := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
+				So(err, ShouldBeNil)
+
+				list := []ServiceView{}
+				_ = json.Unmarshal(msg.Data, &list)
+				So(len(list), ShouldEqual, 20)
+				So(list[0].Name, ShouldEqual, "Test20")
+				So(list[0].UUID, ShouldEqual, "uuid-20")
+				So(list[0].GroupID, ShouldEqual, 1)
+				So(list[0].UserID, ShouldEqual, 20)
+				So(list[0].Status, ShouldEqual, "in_progress")
+				So(list[19].Name, ShouldEqual, "Test1")
+				So(list[19].UUID, ShouldEqual, "uuid-1")
+				So(list[19].GroupID, ShouldEqual, 1)
+				So(list[19].UserID, ShouldEqual, 1)
+				So(list[19].Status, ShouldEqual, "in_progress")
+			})
 		})
 	})
 
@@ -114,32 +158,29 @@ func TestHandler(t *testing.T) {
 			msg, err := n.Request("service.del", []byte(`{"id":"`+id+`"}`), time.Second)
 			So(string(msg.Data), ShouldEqual, string(handler.DeletedMessage))
 			So(err, ShouldEqual, nil)
-
-			////
 		})
 	})
 
 	Convey("Scenario: service set", t, func() {
 		Convey("Given we don't provide any id as part of the body", func() {
 			Convey("Then it should return the created record and it should be stored on DB", func() {
-				msg, err := n.Request("service.set", []byte(`{"name":"fred"}`), time.Second)
+				msg, err := n.Request("service.set", []byte(`{"name":"test-1"}`), time.Second)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
+				So(output.ID, ShouldNotEqual, 0)
 				So(output.UUID, ShouldNotEqual, nil)
-				So(output.Name, ShouldEqual, "fred")
+				So(output.Name, ShouldEqual, "test-1")
 				So(err, ShouldEqual, nil)
-
-				//So(stored.Name, ShouldEqual, "fred")
 			})
 		})
 
 		Convey("Given we provide an unexisting id", func() {
 			Convey("Then it should store the service", func() {
-				msg, err := n.Request("service.set", []byte(`{"id": "unexisting", "name":"fred"}`), time.Second)
+				msg, err := n.Request("service.set", []byte(`{"id": "unexisting", "name":"test-2"}`), time.Second)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
 				So(output.UUID, ShouldEqual, "unexisting")
-				So(output.Name, ShouldEqual, "fred")
+				So(output.Name, ShouldEqual, "test-2")
 				So(err, ShouldEqual, nil)
 			})
 		})
@@ -152,63 +193,40 @@ func TestHandler(t *testing.T) {
 				So(err, ShouldBeNil)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
-
-				////
-
 				Convey("Then we should receive an updated entity", func() {
-
+					So(output.UUID, ShouldEqual, id)
 				})
 				Convey("And non provided fields should not be updated", func() {
-
+					So(output.Options["sync"], ShouldBeTrue)
 				})
 			})
 		})
 	})
 
-	Convey("Scenario: find services", t, func() {
-		Convey("Given services exist on the database", func() {
-			Convey("Then I should get a list of services", func() {
-				msg, _ := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
-
-				list := []ServiceView{}
-				_ = json.Unmarshal(msg.Data, &list)
-				So(len(list), ShouldEqual, 20)
-				s := list[0]
-				So(s.Name, ShouldEqual, "Test1")
-			})
+	Convey("Scenario: getting setting a service mapping", t, func() {
+		Convey("Given the service does not exist on the database", func() {
+			msg, err := n.Request("service.get.mapping", []byte(`{"id":"32"}`), time.Second)
+			So(string(msg.Data), ShouldEqual, `{"error":"bad request"}`)
+			So(err, ShouldEqual, nil)
 		})
-	})
 
-	/*
-
-		Convey("Scenario: getting setting a service mapping", t, func() {
-			db.Unscoped().Delete(models.Service{}, models.Build{})
-
-			Convey("Given the service does not exist on the database", func() {
-				msg, err := n.Request("service.get.mapping", []byte(`{"id":"32"}`), time.Second)
-				So(string(msg.Data), ShouldEqual, string(handler.NotFoundErrorMessage))
+		Convey("And the service exists on the database", func() {
+			id := "uuid-1"
+			Convey("Then calling service.get.mapping should return the valid mapping", func() {
+				msg, err := n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
+				So(string(msg.Data), ShouldEqual, `{}`)
+				So(err, ShouldEqual, nil)
+			})
+			Convey("And calling service.set.mapping should update mapping", func() {
+				msg, err := n.Request("service.set.mapping", []byte(`{"id":"`+id+`","mapping":"{"updated":"content"}"}`), time.Second)
+				So(string(msg.Data), ShouldEqual, `"success"`)
+				So(err, ShouldEqual, nil)
+				msg, err = n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
+				So(string(msg.Data), ShouldEqual, `{"updated":"content"}`)
 				So(err, ShouldEqual, nil)
 			})
 
-			Convey("And the service exists on the database", func() {
-				CreateTestData(db, 1)
-				id := "uuid1"
-				Convey("Then calling service.get.mapping should return the valid mapping", func() {
-					msg, err := n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
-					So(string(msg.Data), ShouldEqual, `{""}`)
-					So(err, ShouldEqual, nil)
-				})
-				Convey("And calling service.set.mapping should update mapping", func() {
-					msg, err := n.Request("service.set.mapping", []byte(`{"id":"`+id+`","mapping":"{\"updated\":\"content\"}"}`), time.Second)
-					So(string(msg.Data), ShouldEqual, `"success"`)
-					So(err, ShouldEqual, nil)
-					msg, err = n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
-					So(string(msg.Data), ShouldEqual, `{"updated":"content"}`)
-					So(err, ShouldEqual, nil)
-				})
-
-			})
 		})
-	*/
+	})
 
 }

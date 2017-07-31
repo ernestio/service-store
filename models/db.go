@@ -36,12 +36,21 @@ func supported(f string, fields []string) bool {
 	return false
 }
 
-func query(q map[string]interface{}, fields []string) *gorm.DB {
+func query(q map[string]interface{}, fields, qfields []string) *gorm.DB {
 	qdb := DB
 
 	for k, v := range q {
+		var qs string
+
 		if supported(k, fields) {
-			qs := fmt.Sprintf("%s = ?", k)
+			qs = fmt.Sprintf("%s = ?", k)
+		}
+
+		if supported(k, qfields) {
+			qs = fmt.Sprintf("%s in (?)", k)
+		}
+
+		if qs != "" {
 			qdb = qdb.Where(qs, v)
 		}
 	}

@@ -11,6 +11,9 @@ import (
 // ServiceFields ...
 var ServiceFields = structFields(Service{})
 
+// ServiceQueryFields ...
+var ServiceQueryFields = []string{"ids", "names"}
+
 // Service : the database mapped entity
 type Service struct {
 	ID           uint       `json:"id" gorm:"primary_key"`
@@ -33,15 +36,15 @@ func (s *Service) TableName() string {
 // FindServices : finds a service
 func FindServices(q map[string]interface{}) []Service {
 	var services []Service
-	query(q, ServiceFields).Find(&services)
+	query(q, ServiceFields, ServiceQueryFields).Find(&services)
 	return services
 }
 
 // GetService ....
-func GetService(q map[string]interface{}) Service {
-	var service Service
-	query(q, ServiceFields).First(service)
-	return service
+func GetService(q map[string]interface{}) (*Service, error) {
+	var service *Service
+	err := query(q, ServiceFields, ServiceQueryFields).First(service).Error
+	return service, err
 }
 
 // Create ...
@@ -51,9 +54,9 @@ func (s *Service) Create() error {
 
 // Update ...
 func (s *Service) Update() error {
-	var stored *Service
+	var stored Service
 
-	err := DB.Where("id = ?", s.ID).First(stored).Error
+	err := DB.Where("id = ?", s.ID).First(&stored).Error
 	if err != nil {
 		return err
 	}
@@ -61,7 +64,7 @@ func (s *Service) Update() error {
 	stored.Options = s.Options
 	stored.Status = s.Status
 
-	return DB.Save(stored).Error
+	return DB.Save(&stored).Error
 }
 
 // Delete ...

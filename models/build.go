@@ -5,7 +5,10 @@
 package models
 
 import (
+	"errors"
 	"time"
+
+	"github.com/r3labs/graph"
 )
 
 // BuildFields ...
@@ -34,15 +37,15 @@ func (b *Build) TableName() string {
 // FindBuilds : finds a build
 func FindBuilds(q map[string]interface{}) []Build {
 	var builds []Build
-	query(q, BuildFields).Find(&builds)
+	query(q, BuildFields, []string{}).Find(&builds)
 	return builds
 }
 
 // GetBuild ...
-func GetBuild(q map[string]interface{}) Build {
+func GetBuild(q map[string]interface{}) (*Build, error) {
 	var build Build
-	query(q, BuildFields).First(build)
-	return build
+	err := query(q, BuildFields, []string{}).First(&build).Error
+	return &build, err
 }
 
 // Create ...
@@ -52,9 +55,9 @@ func (b *Build) Create() error {
 
 // Update ...
 func (b *Build) Update() error {
-	var stored *Build
+	var stored Build
 
-	err := DB.Where("uuid = ?", b.UUID).First(stored).Error
+	err := DB.Where("uuid = ?", b.UUID).First(&stored).Error
 	if err != nil {
 		return err
 	}
@@ -63,10 +66,89 @@ func (b *Build) Update() error {
 	stored.Definition = b.Definition
 	stored.Mapping = b.Mapping
 
-	return DB.Save(stored).Error
+	return DB.Save(&stored).Error
 }
 
 // Delete ...
 func (b *Build) Delete() error {
 	return DB.Delete(b).Error
+}
+
+// SetComponent : creates or updates a component
+func (b *Build) SetComponent(c *graph.GenericComponent) error {
+	var g *graph.Graph
+
+	err := g.Load(b.Mapping)
+	if err != nil {
+		return err
+	}
+
+	if g.HasComponent(c.GetID()) {
+		g.UpdateComponent(c)
+	} else {
+		err = g.AddComponent(c)
+		if err != nil {
+			return err
+		}
+	}
+
+	b.Mapping.LoadGraph(g)
+
+	return nil
+}
+
+// DeleteComponent : updates a component
+func (b *Build) DeleteComponent(c *graph.GenericComponent) error {
+	var g *graph.Graph
+
+	err := g.Load(b.Mapping)
+	if err != nil {
+		return err
+	}
+
+	g.DeleteComponent(c)
+
+	b.Mapping.LoadGraph(g)
+
+	return nil
+}
+
+// SetChange : updates a change
+func (b *Build) SetChange(c *graph.GenericComponent) error {
+	var g *graph.Graph
+
+	err := g.Load(b.Mapping)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(g.Changes); i++ {
+		if g.Changes[i].GetID() == c.GetID() {
+			g.Changes[i] = c
+			b.Mapping.LoadGraph(g)
+			return nil
+		}
+	}
+
+	return errors.New("change not found")
+}
+
+// DeleteChange : deletes a change
+func (b *Build) DeleteChange(c *graph.GenericComponent) error {
+	var g *graph.Graph
+
+	err := g.Load(b.Mapping)
+	if err != nil {
+		return err
+	}
+
+	for i := len(g.Changes) - 1; i >= 0; i-- {
+		if g.Changes[i].GetID() == c.GetID() {
+			g.Changes = append(g.Changes[:i], g.Changes[i+1:]...)
+		}
+	}
+
+	b.Mapping.LoadGraph(g)
+
+	return nil
 }

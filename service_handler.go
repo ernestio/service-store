@@ -17,6 +17,8 @@ import (
 // ServiceView : renders an old singular service by joining data on builds and services tables
 type ServiceView struct {
 	ID           uint       `json:"-" gorm:"primary_key"`
+	IDs          []string   `json:"ids" gorm:"-"`
+	Names        []string   `json:"names" gorm:"-"`
 	UUID         string     `json:"id"`
 	GroupID      uint       `json:"group_id"`
 	UserID       uint       `json:"user_id"`
@@ -33,44 +35,50 @@ type ServiceView struct {
 // Find : based on the defined fields for the current entity
 // will perform a search on the database
 func (s *ServiceView) Find() []interface{} {
-	services := []*ServiceView{}
+	var results []interface{}
+	var services []ServiceView
 
-	db.LogMode(true)
-	//q := db.Raw("SELECT builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options FROM services INNER JOIN builds ON (builds.service_id = services.id)")
-	q := db.Table("services").Select("builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
 	if s.Name != "" && s.GroupID != 0 {
 		if s.UUID != "" {
-			q.Where("service.name = ?", s.Name).Where("service.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID).Order("version desc").Find(&services)
+			q = q.Where("services.name = ?", s.Name).Where("services.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID)
 		} else {
-			q.Where("service.name = ?", s.Name).Where("service.group_id = ?", s.GroupID).Order("version desc").Find(&services)
+			q = q.Where("services.name = ?", s.Name).Where("services.group_id = ?", s.GroupID)
 		}
 	} else {
-		if s.Name != "" && s.UUID != "" {
-			q.Where("service.name = ?", s.Name).Where("builds.uuid = ?", s.UUID).Order("version desc").Find(&services)
+		if s.UUID != "" {
+			q = q.Where("builds.id = ?", s.UUID)
 		} else if s.Name != "" {
-			q.Where("service.name = ?", s.Name).Order("version desc").Find(&services)
+			q = q.Where("services.name = ?", s.Name)
 		} else if s.GroupID != 0 {
-			q.Where("service.group_id = ?", s.GroupID).Order("version desc").Find(&services)
+			q = q.Where("services.group_id = ?", s.GroupID)
 		} else if s.DatacenterID != 0 {
-			q.Where("service.datacenter_id = ?", s.DatacenterID).Order("version desc").Find(&services)
+			q = q.Where("services.datacenter_id = ?", s.DatacenterID)
 		}
 	}
-	db.LogMode(false)
 
-	return nil
+	q.Order("version desc").Find(&services)
+
+	results = make([]interface{}, len(services))
+
+	for i := 0; i < len(services); i++ {
+		results[i] = &services[i]
+	}
+
+	return results
 }
 
 // MapInput : maps the input []byte on the current entity
-func (e *ServiceView) MapInput(body []byte) {
-	if err := json.Unmarshal(body, &e); err != nil {
+func (s *ServiceView) MapInput(body []byte) {
+	if err := json.Unmarshal(body, &s); err != nil {
 		log.Println(err)
 	}
 }
 
 // HasID : determines if the current entity has an id or not
-func (e *ServiceView) HasID() bool {
-	if e.ID == 0 {
+func (s *ServiceView) HasID() bool {
+	if s.ID == 0 {
 		return false
 	}
 	return true
@@ -81,22 +89,24 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 	s.MapInput(msg)
 	var stored ServiceView
 
-	db.LogMode(true)
-	q := db.Table("services").Select("builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
 	if s.UUID != "" {
-		q.Where("builds.uuid = ?", s.UUID).First(&stored)
+		q = q.Where("builds.uuid = ?", s.UUID)
 	} else if s.Name != "" {
-		q.Where("service.name = ?", s.Name).First(&stored)
+		q = q.Where("services.name = ?", s.Name)
 	}
-	db.LogMode(false)
+
+	q.First(&stored)
 
 	if &stored == nil {
 		return false
 	}
-	if ok := stored.HasID(); !ok {
+
+	if stored.HasID() != true {
 		return false
 	}
+
 	s.Name = stored.Name
 	s.UUID = stored.UUID
 	s.GroupID = stored.GroupID
@@ -131,13 +141,12 @@ func (s *ServiceView) Update(body []byte) error {
 	s.MapInput(body)
 
 	if s.Name == "" {
-		log.Println("no service name specified!")
 		return nil
 	}
 
 	service := models.Service{
 		Options: s.Options,
-		Status: s.Status,
+		Status:  s.Status,
 	}
 
 	err := service.Update()
@@ -146,14 +155,12 @@ func (s *ServiceView) Update(body []byte) error {
 	}
 
 	build := models.Build{
-		Status: s.Status,
+		Status:     s.Status,
 		Definition: s.Definition,
-		Mapping: s.Mapping,
+		Mapping:    s.Mapping,
 	}
 
 	db.Where("name = ?", s.Name).First(&service)
-
-
 
 	db.Save(&service)
 
@@ -162,7 +169,6 @@ func (s *ServiceView) Update(body []byte) error {
 	build.ServiceID = service.ID
 	build.UserID = s.UserID
 	build.Type = s.Type
-
 
 	db.Save(&build)
 
@@ -173,23 +179,46 @@ func (s *ServiceView) Update(body []byte) error {
 
 // Delete : Will delete from database the current ServiceView
 func (s *ServiceView) Delete() error {
-	db.Unscoped().Where("name = ?", s.Name).Delete(ServiceView{})
+	var service models.Service
+
+	db.Where("name = ?", s.Name).First(&service)
+	db.Unscoped().Where("id = ?", s.ID).Delete(&service)
+	db.Unscoped().Where("service_id = ?", s.ID).Delete(models.Build{})
 
 	return nil
 }
 
 // Save : Persists current entity on database
 func (s *ServiceView) Save() error {
-	panic("saving!")
-
 	tx := db.Begin()
 	tx.Exec("set transaction isolation level serializable")
 
 	service := models.Service{
-		Name:
+		Name:         s.Name,
+		GroupID:      s.GroupID,
+		DatacenterID: s.DatacenterID,
+		Options:      s.Options,
+		Status:       s.Status,
 	}
 
-	err := tx.Save(s).Error
+	err := tx.Save(&service).Error
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	build := models.Build{
+		UUID:       s.UUID,
+		ServiceID:  service.ID,
+		UserID:     s.UserID,
+		Type:       s.Type,
+		Status:     s.Status,
+		Definition: s.Definition,
+		Mapping:    s.Mapping,
+	}
+
+	err = tx.Save(&build).Error
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()

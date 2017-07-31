@@ -8,6 +8,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+
+	"github.com/r3labs/graph"
 )
 
 // Map : holds a map[string]interface{} value that can be loaded/serialized to a JSONB field
@@ -21,6 +23,7 @@ func (m Map) Value() (driver.Value, error) {
 // Scan : serializes the jsonb object to a map[string]interface{}
 func (m *Map) Scan(src interface{}) error {
 	var ok bool
+	var i interface{}
 	var source []byte
 
 	switch src.(type) {
@@ -32,8 +35,12 @@ func (m *Map) Scan(src interface{}) error {
 		return errors.New("type assertion .([]byte) & .(string) failed")
 	}
 
-	var i interface{}
-	if err := json.Unmarshal(source, &i); err != nil {
+	if string(source) == "null" {
+		source = []byte("{}")
+	}
+
+	err := json.Unmarshal(source, &i)
+	if err != nil {
 		return err
 	}
 
@@ -43,4 +50,18 @@ func (m *Map) Scan(src interface{}) error {
 	}
 
 	return nil
+}
+
+// LoadGraph ...
+func (m *Map) LoadGraph(g *graph.Graph) {
+	mx := make(Map)
+
+	mx["id"] = g.ID
+	mx["action"] = g.Action
+	mx["options"] = g.Options
+	mx["components"] = g.Components
+	mx["changes"] = g.Changes
+	mx["edges"] = g.Changes
+
+	*m = mx
 }
