@@ -12,7 +12,7 @@ import (
 )
 
 // BuildFields ...
-var BuildFields = structFields(Build{})
+var BuildFields = append([]string{"uuid"}, structFields(Build{})...)
 
 // Build : stores build data
 type Build struct {

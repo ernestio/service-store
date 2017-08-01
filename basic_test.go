@@ -206,20 +206,20 @@ func TestHandler(t *testing.T) {
 	Convey("Scenario: getting setting a service mapping", t, func() {
 		Convey("Given the service does not exist on the database", func() {
 			msg, err := n.Request("service.get.mapping", []byte(`{"id":"32"}`), time.Second)
-			So(string(msg.Data), ShouldEqual, `{"error":"bad request"}`)
+			So(string(msg.Data), ShouldEqual, `{"error": "bad request"}`)
 			So(err, ShouldEqual, nil)
 		})
 
 		Convey("And the service exists on the database", func() {
-			id := "uuid-1"
+			id := "uuid-3"
 			Convey("Then calling service.get.mapping should return the valid mapping", func() {
 				msg, err := n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
-				So(string(msg.Data), ShouldEqual, `{}`)
+				So(string(msg.Data), ShouldEqual, `{"action":"service.create","changes":[{"_component_id":"network::test-3","_state":"waiting"},{"_component_id":"network::test-4","_state":"waiting"}],"components":[{"_component_id":"network::test-1","_state":"running"},{"_component_id":"network::test-2","_state":"running"}],"id":"uuid-3"}`)
 				So(err, ShouldEqual, nil)
 			})
 			Convey("And calling service.set.mapping should update mapping", func() {
-				msg, err := n.Request("service.set.mapping", []byte(`{"id":"`+id+`","mapping":"{"updated":"content"}"}`), time.Second)
-				So(string(msg.Data), ShouldEqual, `"success"`)
+				msg, err := n.Request("service.set.mapping", []byte(`{"id":"`+id+`","mapping":{"updated":"content"}}`), time.Second)
+				So(string(msg.Data), ShouldEqual, `{"status": "success"}`)
 				So(err, ShouldEqual, nil)
 				msg, err = n.Request("service.get.mapping", []byte(`{"id":"`+id+`"}`), time.Second)
 				So(string(msg.Data), ShouldEqual, `{"updated":"content"}`)

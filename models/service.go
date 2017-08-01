@@ -69,5 +69,10 @@ func (s *Service) Update() error {
 
 // Delete ...
 func (s *Service) Delete() error {
-	return DB.Delete(s).Error
+	err := DB.Unscoped().Where("service_id = ?", s.ID).Delete(Build{}).Error
+	if err != nil {
+		return err
+	}
+
+	return DB.Unscoped().Delete(s).Error
 }

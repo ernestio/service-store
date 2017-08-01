@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"strings"
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
@@ -37,7 +38,7 @@ func GetMapping(msg *nats.Msg) {
 	}
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
-	if err != nil {
+	if err != nil || b == nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 	}
 
@@ -58,17 +59,17 @@ func SetMapping(msg *nats.Msg) {
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not find build"}`))
 	}
 
 	b.Mapping = m.Mapping
 
 	err = b.Update()
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not store build mapping"}`))
 	}
 
-	handler.Nats.Publish(msg.Reply, []byte(`{"error": "success"}`))
+	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
 }
 
 // GetDefinition : Definition field getter
@@ -105,7 +106,7 @@ func SetDefinition(msg *nats.Msg) {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 	}
 
-	handler.Nats.Publish(msg.Reply, []byte(`{"error": "success"}`))
+	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
 }
 
 // SetComponent : Mapping component setter
@@ -142,7 +143,7 @@ func SetComponent(msg *nats.Msg) {
 
 	tx.Commit()
 
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"error":"success"}`))
+	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // DeleteComponent : Mapping component deleter
@@ -179,7 +180,7 @@ func DeleteComponent(msg *nats.Msg) {
 
 	tx.Commit()
 
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"error":"success"}`))
+	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // SetChange : Mapping change setter
@@ -216,39 +217,63 @@ func SetChange(msg *nats.Msg) {
 
 	tx.Commit()
 
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"error":"success"}`))
+	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
-/*
-// ServiceComplete : sets a services error to complete
-func ServiceComplete(msg *nats.Msg) {
+// ServiceDeleteComplete : sets a services error to complete
+func ServiceDeleteComplete(msg *nats.Msg) {
 	parts := strings.Split(msg.Subject, ".")
 
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
-		input.MapInput(msg.Data)
+	m, err := getMessage(msg)
+	if err != nil {
+		log.Println("could not handle service complete message: " + err.Error())
+	}
 
-		if parts[1] == "delete" {
-			_ = e.Delete()
-		} else {
-			if e.Status != "syncing" {
-				e.Status = "done"
-			}
-			db.Save(&e)
+	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	if err != nil {
+		log.Println("could not get build from service complete message: " + err.Error())
+	}
+
+	s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
+	if err != nil {
+		log.Println("could not get service from service complete message: " + err.Error())
+	}
+
+	if parts[1] == "delete" {
+		err = s.Delete()
+		if err != nil {
+			log.Println("could not get delete the service: " + err.Error())
 		}
 	}
 }
 
 // ServiceError : sets a services error to errored
 func ServiceError(msg *nats.Msg) {
-	e := Entity{}
-	if ok := e.LoadFromInputOrFail(msg, &handler); ok {
-		input := Entity{}
-		input.MapInput(msg.Data)
+	m, err := getMessage(msg)
+	if err != nil {
+		log.Println("could not handle service complete message: " + err.Error())
+	}
 
-		e.Status = "errored"
-		db.Save(&e)
+	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	if err != nil {
+		log.Println("could not get build from service complete message: " + err.Error())
+	}
+
+	s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
+	if err != nil {
+		log.Println("could not get service from service complete message: " + err.Error())
+	}
+
+	s.Status = "errored"
+	b.Status = "errored"
+
+	err = b.Update()
+	if err != nil {
+		log.Println("could not save build from service error message: " + err.Error())
+	}
+
+	err = s.Update()
+	if err != nil {
+		log.Println("could not save service from service error message: " + err.Error())
 	}
 }
-*/
