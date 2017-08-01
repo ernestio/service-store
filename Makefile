@@ -5,6 +5,7 @@ build:
 	go build -v ./...
 
 deps:
+	go get github.com/r3labs/graph
 	go get github.com/jinzhu/gorm
 	go get github.com/nats-io/nats
 	go get github.com/lib/pq
