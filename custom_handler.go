@@ -35,16 +35,19 @@ func GetMapping(msg *nats.Msg) {
 	m, err := getMessage(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil || b == nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	data, err := json.Marshal(b.Mapping)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	handler.Nats.Publish(msg.Reply, data)
@@ -55,11 +58,13 @@ func SetMapping(msg *nats.Msg) {
 	m, err := getMessage(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not find build"}`))
+		return
 	}
 
 	b.Mapping = m.Mapping
@@ -67,6 +72,7 @@ func SetMapping(msg *nats.Msg) {
 	err = b.Update()
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not store build mapping"}`))
+		return
 	}
 
 	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
@@ -77,11 +83,13 @@ func GetDefinition(msg *nats.Msg) {
 	m, err := getMessage(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	handler.Nats.Publish(msg.Reply, []byte(b.Definition))
@@ -92,11 +100,13 @@ func SetDefinition(msg *nats.Msg) {
 	m, err := getMessage(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	b.Definition = m.Definition
@@ -104,6 +114,7 @@ func SetDefinition(msg *nats.Msg) {
 	err = b.Update()
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
 	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
@@ -111,111 +122,69 @@ func SetDefinition(msg *nats.Msg) {
 
 // SetComponent : Mapping component setter
 func SetComponent(msg *nats.Msg) {
-	var b models.Build
-
 	c, err := getComponent(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
-	tx := db.Begin()
-	tx.Exec("set transaction isolation level serializable")
-
-	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", (*c)["service"]).Scan(&b).Error
+	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.SetComponent(c)
 	if err != nil {
-		log.Println(err)
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
-
-	err = tx.Save(&b).Error
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return
-	}
-
-	tx.Commit()
 
 	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // DeleteComponent : Mapping component deleter
 func DeleteComponent(msg *nats.Msg) {
-	var b models.Build
-
 	c, err := getComponent(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
-	tx := db.Begin()
-	tx.Exec("set transaction isolation level serializable")
-
-	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", (*c)["service"]).Scan(&b).Error
+	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.DeleteComponent(c)
 	if err != nil {
-		log.Println(err)
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
-
-	err = tx.Save(&b).Error
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return
-	}
-
-	tx.Commit()
 
 	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
-	var b models.Build
-
 	c, err := getComponent(msg)
 	if err != nil {
 		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+		return
 	}
 
-	tx := db.Begin()
-	tx.Exec("set transaction isolation level serializable")
-
-	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", (*c)["service"]).Scan(&b).Error
+	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.SetChange(c)
 	if err != nil {
-		log.Println(err)
-		tx.Rollback()
+		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
-
-	err = tx.Save(&b).Error
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return
-	}
-
-	tx.Commit()
 
 	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }

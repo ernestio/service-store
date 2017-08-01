@@ -14,6 +14,9 @@ import (
 // BuildFields ...
 var BuildFields = append([]string{"uuid"}, structFields(Build{})...)
 
+// GraphTransform : a function that can transform parts of a graph
+type GraphTransform func(g *graph.Graph, c *graph.GenericComponent) error
+
 // Build : stores build data
 type Build struct {
 	ID         uint       `json:"-" gorm:"primary_key"`
@@ -76,79 +79,89 @@ func (b *Build) Delete() error {
 
 // SetComponent : creates or updates a component
 func (b *Build) SetComponent(c *graph.GenericComponent) error {
-	var g *graph.Graph
-
-	err := g.Load(b.Mapping)
-	if err != nil {
-		return err
-	}
-
-	if g.HasComponent(c.GetID()) {
-		g.UpdateComponent(c)
-	} else {
-		err = g.AddComponent(c)
-		if err != nil {
-			return err
+	return b.updateGraph(c, func(g *graph.Graph, c *graph.GenericComponent) error {
+		if g.HasComponent(c.GetID()) {
+			g.UpdateComponent(c)
+			return nil
 		}
-	}
-
-	b.Mapping.LoadGraph(g)
-
-	return nil
+		return g.AddComponent(c)
+	})
 }
 
 // DeleteComponent : updates a component
 func (b *Build) DeleteComponent(c *graph.GenericComponent) error {
-	var g *graph.Graph
-
-	err := g.Load(b.Mapping)
-	if err != nil {
-		return err
-	}
-
-	g.DeleteComponent(c)
-
-	b.Mapping.LoadGraph(g)
-
-	return nil
+	return b.updateGraph(c, func(g *graph.Graph, c *graph.GenericComponent) error {
+		g.DeleteComponent(c)
+		return nil
+	})
 }
 
 // SetChange : updates a change
 func (b *Build) SetChange(c *graph.GenericComponent) error {
-	var g *graph.Graph
-
-	err := g.Load(b.Mapping)
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i < len(g.Changes); i++ {
-		if g.Changes[i].GetID() == c.GetID() {
-			g.Changes[i] = c
-			b.Mapping.LoadGraph(g)
-			return nil
+	return b.updateGraph(c, func(g *graph.Graph, c *graph.GenericComponent) error {
+		for i := 0; i < len(g.Changes); i++ {
+			if g.Changes[i].GetID() == c.GetID() {
+				g.Changes[i] = c
+				b.Mapping.LoadGraph(g)
+				return nil
+			}
 		}
-	}
-
-	return errors.New("change not found")
+		return errors.New("change component not found")
+	})
 }
 
 // DeleteChange : deletes a change
 func (b *Build) DeleteChange(c *graph.GenericComponent) error {
-	var g *graph.Graph
+	return b.updateGraph(c, func(g *graph.Graph, c *graph.GenericComponent) error {
+		for i := len(g.Changes) - 1; i >= 0; i-- {
+			if g.Changes[i].GetID() == c.GetID() {
+				g.Changes = append(g.Changes[:i], g.Changes[i+1:]...)
+			}
+		}
+		return nil
+	})
+}
 
-	err := g.Load(b.Mapping)
+func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error {
+	var g *graph.Graph
+	var err error
+
+	tx := DB.Begin()
+	tx.Exec("set transaction isolation level serializable")
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit().Error
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", b.UUID).Scan(&b).Error
 	if err != nil {
 		return err
 	}
 
-	for i := len(g.Changes) - 1; i >= 0; i-- {
-		if g.Changes[i].GetID() == c.GetID() {
-			g.Changes = append(g.Changes[:i], g.Changes[i+1:]...)
-		}
+	err = g.Load(b.Mapping)
+	if err != nil {
+		return err
+	}
+
+	// run graph transform function
+	err = tf(g, c)
+	if err != nil {
+		return err
 	}
 
 	b.Mapping.LoadGraph(g)
+
+	err = tx.Save(&b).Error
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
 
 	return nil
 }
