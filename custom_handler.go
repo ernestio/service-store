@@ -11,7 +11,7 @@ import (
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
-	"github.com/r3labs/graph"
+	graph "gopkg.in/r3labs/graph.v2"
 )
 
 type Message struct {
