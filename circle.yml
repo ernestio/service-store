@@ -21,6 +21,10 @@ machine:
     ernest.local: 127.0.0.1
 
 dependencies:
+  pre:
+    - mkdir -p $ROOTPATH/
+    - rm -rf $ROOTPATH/service-store
+    - cp -R /home/ubuntu/service-store $ROOTPATH/service-store
   override:
     - echo "CREATE DATABASE services;" | psql -U postgres
     - docker run -d -p 4222:4222 nats
