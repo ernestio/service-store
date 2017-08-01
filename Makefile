@@ -14,6 +14,7 @@ deps:
 
 dev-deps: deps
 	go get github.com/smartystreets/goconvey/convey
+	go get github.com/stretchr/testify/suite
 	go get github.com/alecthomas/gometalinter
 	gometalinter --install
 
@@ -22,4 +23,3 @@ test:
 
 lint:
 	gometalinter --config .linter.conf
-
