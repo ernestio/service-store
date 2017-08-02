@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
@@ -20,6 +21,15 @@ type Message struct {
 	Mapping    map[string]interface{} `json:"mapping"`
 }
 
+func errcheck(reply string, err *error) {
+	if *err != nil {
+		log.Println(*err)
+		if reply != "" {
+			handler.Nats.Publish(reply, []byte(`{"error": "`+(*err).Error()+`"}`))
+		}
+	}
+}
+
 func getMessage(msg *nats.Msg) (*Message, error) {
 	var m Message
 	return &m, json.Unmarshal(msg.Data, &m)
@@ -32,21 +42,30 @@ func getComponent(msg *nats.Msg) (*graph.GenericComponent, error) {
 
 // GetMapping : Mapping field getter
 func GetMapping(msg *nats.Msg) {
-	m, err := getMessage(msg)
+	var m *Message
+	var b *models.Build
+	var err error
+	var data []byte
+
+	defer errcheck(msg.Reply, &err)
+
+	m, err = getMessage(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
-	if err != nil || b == nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	if err != nil {
 		return
 	}
 
-	data, err := json.Marshal(b.Mapping)
+	if b == nil {
+		err = errors.New("build not found")
+		return
+	}
+
+	data, err = json.Marshal(b.Mapping)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -55,15 +74,19 @@ func GetMapping(msg *nats.Msg) {
 
 // SetMapping : Mapping field setter
 func SetMapping(msg *nats.Msg) {
-	m, err := getMessage(msg)
+	var m *Message
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	m, err = getMessage(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not find build"}`))
 		return
 	}
 
@@ -80,15 +103,19 @@ func SetMapping(msg *nats.Msg) {
 
 // GetDefinition : Definition field getter
 func GetDefinition(msg *nats.Msg) {
-	m, err := getMessage(msg)
+	var m *Message
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	m, err = getMessage(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -97,15 +124,19 @@ func GetDefinition(msg *nats.Msg) {
 
 // SetDefinition : Definition field setter
 func SetDefinition(msg *nats.Msg) {
-	m, err := getMessage(msg)
+	var m *Message
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	m, err = getMessage(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -113,7 +144,6 @@ func SetDefinition(msg *nats.Msg) {
 
 	err = b.Update()
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -122,21 +152,24 @@ func SetDefinition(msg *nats.Msg) {
 
 // SetComponent : Mapping component setter
 func SetComponent(msg *nats.Msg) {
-	c, err := getComponent(msg)
+	var c *graph.GenericComponent
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	c, err = getComponent(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.SetComponent(c)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -145,21 +178,24 @@ func SetComponent(msg *nats.Msg) {
 
 // DeleteComponent : Mapping component deleter
 func DeleteComponent(msg *nats.Msg) {
-	c, err := getComponent(msg)
+	var c *graph.GenericComponent
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	c, err = getComponent(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.DeleteComponent(c)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
@@ -168,21 +204,24 @@ func DeleteComponent(msg *nats.Msg) {
 
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
-	c, err := getComponent(msg)
+	var c *graph.GenericComponent
+	var b *models.Build
+	var err error
+
+	defer errcheck(msg.Reply, &err)
+
+	c, err = getComponent(msg)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
+	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 
 	err = b.SetChange(c)
 	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "bad request"}`))
 		return
 	}
 

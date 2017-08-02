@@ -206,8 +206,8 @@ func TestHandler(t *testing.T) {
 	Convey("Scenario: getting setting a service mapping", t, func() {
 		Convey("Given the service does not exist on the database", func() {
 			msg, err := n.Request("service.get.mapping", []byte(`{"id":"32"}`), time.Second)
-			So(string(msg.Data), ShouldEqual, `{"error": "bad request"}`)
 			So(err, ShouldBeNil)
+			So(string(msg.Data), ShouldEqual, `{"error": "record not found"}`)
 		})
 
 		Convey("And the service exists on the database", func() {
