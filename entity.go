@@ -50,9 +50,9 @@ func (e *Entity) Find() []interface{} {
 	entities := []Entity{}
 	fields := "uuid, group_id, user_id, datacenter_id, name, type, version, status, options, definition, mapping, last_known_error"
 	if len(e.IDs) > 0 {
-		db.Where("uuid in (?)", e.IDs).Find(&entities)
+		db.Where("uuid in (?)", e.IDs).Order("version desc").Find(&entities)
 	} else if len(e.Names) > 0 {
-		db.Where("name in (?)", e.Names).Find(&entities)
+		db.Where("name in (?)", e.Names).Order("version desc").Find(&entities)
 	} else if e.Name != "" && e.GroupID != 0 {
 		if e.UUID != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("group_id = ?", e.GroupID).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
