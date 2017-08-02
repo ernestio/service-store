@@ -138,7 +138,7 @@ func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error 
 		}
 	}()
 
-	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", b.UUID).Scan(&b).Error
+	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", b.UUID).Scan(b).Error
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error 
 
 	b.Mapping.LoadGraph(g)
 
-	err = tx.Save(&b).Error
+	err = tx.Save(b).Error
 	if err != nil {
 		return err
 	}
