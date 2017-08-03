@@ -18,8 +18,8 @@ var DepreciatedColumns = []string{"options", "sync", "sync_type", "sync_interval
 func Migrate(db *gorm.DB) error {
 	var builds []models.Build
 
-	if db.HasTable(models.Build{}) {
-		fmt.Println("has table!")
+	if db.HasTable(models.Build{}) || !db.HasTable(models.Service{}) {
+		fmt.Println("skipping migration")
 		return nil
 	}
 

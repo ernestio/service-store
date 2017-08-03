@@ -61,7 +61,7 @@ func (m *Map) LoadGraph(g *graph.Graph) {
 	mx["options"] = g.Options
 	mx["components"] = g.Components
 	mx["changes"] = g.Changes
-	mx["edges"] = g.Changes
+	mx["edges"] = g.Edges
 
 	*m = mx
 }
