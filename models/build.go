@@ -102,7 +102,6 @@ func (b *Build) SetChange(c *graph.GenericComponent) error {
 		for i := 0; i < len(g.Changes); i++ {
 			if g.Changes[i].GetID() == c.GetID() {
 				g.Changes[i] = c
-				b.Mapping.LoadGraph(g)
 				return nil
 			}
 		}
@@ -123,7 +122,6 @@ func (b *Build) DeleteChange(c *graph.GenericComponent) error {
 }
 
 func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error {
-	var g *graph.Graph
 	var err error
 
 	tx := DB.Begin()
@@ -138,10 +136,12 @@ func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error 
 		}
 	}()
 
-	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", b.UUID).Scan(b).Error
+	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", (*c)["service"]).Scan(b).Error
 	if err != nil {
 		return err
 	}
+
+	g := graph.New()
 
 	err = g.Load(b.Mapping)
 	if err != nil {
@@ -157,11 +157,6 @@ func (b *Build) updateGraph(c *graph.GenericComponent, tf GraphTransform) error 
 	b.Mapping.LoadGraph(g)
 
 	err = tx.Save(b).Error
-	if err != nil {
-		return err
-	}
 
-	tx.Commit()
-
-	return nil
+	return err
 }

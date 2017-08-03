@@ -72,6 +72,7 @@ func TestHandler(t *testing.T) {
 	tests.CreateTestDB("test_handlers")
 
 	setupNats()
+	defer n.Close()
 
 	_, _ = n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
 		_ = n.Publish(msg.Reply, []byte(`{"names":["services"],"password":"","url":"postgres://postgres@127.0.0.1","user":""}`))

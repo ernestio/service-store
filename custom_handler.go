@@ -15,18 +15,25 @@ import (
 	graph "gopkg.in/r3labs/graph.v2"
 )
 
+// Message ...
 type Message struct {
 	ID         string                 `json:"id"`
 	Definition string                 `json:"definition"`
 	Mapping    map[string]interface{} `json:"mapping"`
 }
 
-func errcheck(reply string, err *error) {
+func complete(reply string, data *[]byte, err *error) {
 	if *err != nil {
 		log.Println(*err)
-		if reply != "" {
-			handler.Nats.Publish(reply, []byte(`{"error": "`+(*err).Error()+`"}`))
-		}
+		d := []byte(`{"error": "` + (*err).Error() + `"}`)
+		data = &d
+	} else if data == nil {
+		d := []byte(`{"status": "success"}`)
+		data = &d
+	}
+
+	if reply != "" {
+		handler.Nats.Publish(reply, *data)
 	}
 }
 
@@ -47,7 +54,7 @@ func GetMapping(msg *nats.Msg) {
 	var err error
 	var data []byte
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, &data, &err)
 
 	m, err = getMessage(msg)
 	if err != nil {
@@ -65,11 +72,6 @@ func GetMapping(msg *nats.Msg) {
 	}
 
 	data, err = json.Marshal(b.Mapping)
-	if err != nil {
-		return
-	}
-
-	handler.Nats.Publish(msg.Reply, data)
 }
 
 // SetMapping : Mapping field setter
@@ -78,7 +80,7 @@ func SetMapping(msg *nats.Msg) {
 	var b *models.Build
 	var err error
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, nil, &err)
 
 	m, err = getMessage(msg)
 	if err != nil {
@@ -93,12 +95,6 @@ func SetMapping(msg *nats.Msg) {
 	b.Mapping = m.Mapping
 
 	err = b.Update()
-	if err != nil {
-		handler.Nats.Publish(msg.Reply, []byte(`{"error": "could not store build mapping"}`))
-		return
-	}
-
-	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
 }
 
 // GetDefinition : Definition field getter
@@ -106,8 +102,9 @@ func GetDefinition(msg *nats.Msg) {
 	var m *Message
 	var b *models.Build
 	var err error
+	var data []byte
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, &data, &err)
 
 	m, err = getMessage(msg)
 	if err != nil {
@@ -119,7 +116,7 @@ func GetDefinition(msg *nats.Msg) {
 		return
 	}
 
-	handler.Nats.Publish(msg.Reply, []byte(b.Definition))
+	data = []byte(b.Definition)
 }
 
 // SetDefinition : Definition field setter
@@ -128,7 +125,7 @@ func SetDefinition(msg *nats.Msg) {
 	var b *models.Build
 	var err error
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, nil, &err)
 
 	m, err = getMessage(msg)
 	if err != nil {
@@ -143,89 +140,54 @@ func SetDefinition(msg *nats.Msg) {
 	b.Definition = m.Definition
 
 	err = b.Update()
-	if err != nil {
-		return
-	}
-
-	handler.Nats.Publish(msg.Reply, []byte(`{"status": "success"}`))
 }
 
 // SetComponent : Mapping component setter
 func SetComponent(msg *nats.Msg) {
 	var c *graph.GenericComponent
-	var b *models.Build
+	var b models.Build
 	var err error
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, nil, &err)
 
 	c, err = getComponent(msg)
-	if err != nil {
-		return
-	}
-
-	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
 		return
 	}
 
 	err = b.SetComponent(c)
-	if err != nil {
-		return
-	}
-
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // DeleteComponent : Mapping component deleter
 func DeleteComponent(msg *nats.Msg) {
 	var c *graph.GenericComponent
-	var b *models.Build
+	var b models.Build
 	var err error
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, nil, &err)
 
 	c, err = getComponent(msg)
-	if err != nil {
-		return
-	}
-
-	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
 	if err != nil {
 		return
 	}
 
 	err = b.DeleteComponent(c)
-	if err != nil {
-		return
-	}
-
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // SetChange : Mapping change setter
 func SetChange(msg *nats.Msg) {
 	var c *graph.GenericComponent
-	var b *models.Build
+	var b models.Build
 	var err error
 
-	defer errcheck(msg.Reply, &err)
+	defer complete(msg.Reply, nil, &err)
 
 	c, err = getComponent(msg)
 	if err != nil {
 		return
 	}
 
-	b, err = models.GetBuild(map[string]interface{}{"uuid": (*c)["service"]})
-	if err != nil {
-		return
-	}
-
 	err = b.SetChange(c)
-	if err != nil {
-		return
-	}
-
-	_ = handler.Nats.Publish(msg.Reply, []byte(`{"status":"success"}`))
 }
 
 // ServiceDeleteComplete : sets a services error to complete

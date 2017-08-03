@@ -31,44 +31,44 @@ func startHandler() {
 		},
 	}
 
-	if _, err := n.Subscribe("service.get", handler.Get); err != nil {
+	if _, err := n.QueueSubscribe("service.get", "service-store", handler.Get); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.del", handler.Del); err != nil {
+	if _, err := n.QueueSubscribe("service.del", "service-store", handler.Del); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set", handler.Set); err != nil {
+	if _, err := n.QueueSubscribe("service.set", "service-store", handler.Set); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.find", handler.Find); err != nil {
+	if _, err := n.QueueSubscribe("service.find", "service-store", handler.Find); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.get.mapping", GetMapping); err != nil {
+	if _, err := n.QueueSubscribe("service.get.mapping", "service-store", GetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping", SetMapping); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping", "service-store", SetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping.component", SetComponent); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping.component", "service-store", SetComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.del.mapping.component", DeleteComponent); err != nil {
+	if _, err := n.QueueSubscribe("service.del.mapping.component", "service-store", DeleteComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping.change", SetChange); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping.change", "service-store", SetChange); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.get.definition", GetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("service.get.definition", "service-store", GetDefinition); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.definition", SetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("service.set.definition", "service-store", SetDefinition); err != nil {
 		log.Panic(err)
 	}
 }
 
 func main() {
 	setupNats()
-	setupPg("services")
+	setupPg("service-store")
 	startHandler()
 
 	Migrate(db)
