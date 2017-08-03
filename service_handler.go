@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"time"
 
@@ -17,8 +18,8 @@ import (
 // ServiceView : renders an old singular service by joining data on builds and services tables
 type ServiceView struct {
 	ID           uint       `json:"-" gorm:"primary_key"`
-	IDs          []string   `json:"ids" gorm:"-"`
-	Names        []string   `json:"names" gorm:"-"`
+	IDs          []string   `json:"ids,omitempty" gorm:"-"`
+	Names        []string   `json:"names,omitempty" gorm:"-"`
 	UUID         string     `json:"id"`
 	GroupID      uint       `json:"group_id"`
 	UserID       uint       `json:"user_id"`
@@ -78,10 +79,7 @@ func (s *ServiceView) MapInput(body []byte) {
 
 // HasID : determines if the current entity has an id or not
 func (s *ServiceView) HasID() bool {
-	if s.ID == 0 {
-		return false
-	}
-	return true
+	return s.ID != 0
 }
 
 // LoadFromInput : Will load from a []byte input the database stored entity
@@ -103,7 +101,7 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 		return false
 	}
 
-	if stored.HasID() != true {
+	if !stored.HasID() {
 		return false
 	}
 
@@ -141,38 +139,15 @@ func (s *ServiceView) Update(body []byte) error {
 	s.MapInput(body)
 
 	if s.Name == "" {
-		return nil
+		return errors.New("service name was not specified")
 	}
 
 	service := models.Service{
 		Options: s.Options,
-		Status:  s.Status,
-	}
-
-	err := service.Update()
-	if err != nil {
-		return err
-	}
-
-	build := models.Build{
-		Status:     s.Status,
-		Definition: s.Definition,
-		Mapping:    s.Mapping,
 	}
 
 	db.Where("name = ?", s.Name).First(&service)
-
 	db.Save(&service)
-
-	db.Where("uuid = ?", s.UUID).First(&build)
-
-	build.ServiceID = service.ID
-	build.UserID = s.UserID
-	build.Type = s.Type
-
-	db.Save(&build)
-
-	s.ID = service.ID
 
 	return nil
 }
@@ -190,21 +165,44 @@ func (s *ServiceView) Delete() error {
 
 // Save : Persists current entity on database
 func (s *ServiceView) Save() error {
+	var err error
+
 	tx := db.Begin()
 	tx.Exec("set transaction isolation level serializable")
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit().Error
+		default:
+			log.Println(err)
+			err = tx.Rollback().Error
+		}
+	}()
 
 	service := models.Service{
 		Name:         s.Name,
 		GroupID:      s.GroupID,
 		DatacenterID: s.DatacenterID,
 		Options:      s.Options,
-		Status:       s.Status,
+		Status:       "initializing",
 	}
 
-	err := tx.Save(&service).Error
+	err = tx.Where("name = ?", s.Name).FirstOrCreate(&service).Error
 	if err != nil {
-		log.Println(err)
-		tx.Rollback()
+		return err
+	}
+
+	switch service.Status {
+	case "initializing", "done", "errored":
+		tx.Raw("UPDATE services SET status = ? WHERE id = ?", "in_progress", service.ID)
+	case "in_progress":
+		err = errors.New("could not create service build: service in progress")
+	default:
+		err = errors.New("could not create service build: unknown service state")
+	}
+
+	if err != nil {
 		return err
 	}
 
@@ -213,7 +211,7 @@ func (s *ServiceView) Save() error {
 		ServiceID:  service.ID,
 		UserID:     s.UserID,
 		Type:       s.Type,
-		Status:     s.Status,
+		Status:     "in_progress",
 		Definition: s.Definition,
 		Mapping:    s.Mapping,
 	}

@@ -5,7 +5,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -36,7 +35,7 @@ func TestSetComponentHandler(t *testing.T) {
 
 	Convey("Scenario: setting multiple components on a service concurrently", t, func() {
 		Convey("When receiving two events that update the same service mapping", func() {
-			id := fmt.Sprint("uuid-1")
+			id := "uuid-1"
 
 			_ = n.Publish("service.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"`+id+`", "_state": "completed"}`))
 			_, err := n.Request("service.set.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"`+id+`", "_state": "completed"}`), time.Second)

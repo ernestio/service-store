@@ -15,6 +15,7 @@ import (
 	"github.com/lib/pq"
 )
 
+// CreateTestDB ...
 func CreateTestDB(name string) error {
 	db, derr := sql.Open("postgres", "user=postgres sslmode=disable")
 	if derr != nil {
@@ -27,13 +28,11 @@ func CreateTestDB(name string) error {
 	}
 
 	_, derr = db.Exec(fmt.Sprintf("CREATE DATABASE %s", pq.QuoteIdentifier(name)))
-	if derr != nil {
-		return derr
-	}
 
-	return nil
+	return derr
 }
 
+// CreateMigrationData ...
 func CreateMigrationData(dbname string, file string) error {
 	db, err := sql.Open("postgres", "user=postgres dbname="+dbname+" sslmode=disable")
 	if err != nil {
@@ -63,6 +62,7 @@ func CreateMigrationData(dbname string, file string) error {
 	return tx.Commit()
 }
 
+// LoadJSON ...
 func LoadJSON(path string, m interface{}) {
 
 	data, err := ioutil.ReadFile(path)
