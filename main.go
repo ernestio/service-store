@@ -68,7 +68,7 @@ func startHandler() {
 
 func main() {
 	setupNats()
-	setupPg("service-store")
+	setupPg("services")
 	startHandler()
 
 	Migrate(db)
