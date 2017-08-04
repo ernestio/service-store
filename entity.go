@@ -62,6 +62,8 @@ func (e *Entity) Find() []interface{} {
 	} else {
 		if e.Name != "" && e.UUID != "" {
 			db.Select(fields).Where("name = ?", e.Name).Where("uuid = ?", e.UUID).Order("version desc").Find(&entities)
+		} else if e.Name != "" && e.Status != "" {
+			db.Select(fields).Where("name = ?", e.Name).Where("status = ?", e.Status).Order("version desc").Find(&entities)
 		} else if e.Name != "" {
 			db.Select(fields).Where("name = ?", e.Name).Order("version desc").Find(&entities)
 		} else if e.GroupID != 0 {
@@ -168,11 +170,7 @@ func (e *Entity) Update(body []byte) error {
 	stored.DatacenterID = e.DatacenterID
 	stored.Type = e.Type
 	stored.Version = e.Version
-	if e.Status == "done" && e.Status != stored.Status {
-		stored.Definition = e.requestDefinition()
-	} else {
-		stored.Definition = e.Definition
-	}
+	stored.Definition = e.Definition
 	stored.Status = e.Status
 	stored.LastKnownError = e.LastKnownError
 	stored.Sync = e.Sync
