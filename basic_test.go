@@ -23,7 +23,7 @@ func CreateTestData(db *gorm.DB, count int) {
 			Name:         "Test" + strconv.Itoa(i),
 			GroupID:      1,
 			DatacenterID: 1,
-			Status:       "in_progress",
+			Status:       "done",
 			Options: map[string]interface{}{
 				"sync":          true,
 				"sync_type":     "hard",
@@ -38,7 +38,7 @@ func CreateTestData(db *gorm.DB, count int) {
 			UUID:      "uuid-" + strconv.Itoa(i),
 			ServiceID: uint(i),
 			UserID:    uint(i),
-			Status:    "in_progress",
+			Status:    "done",
 			Mapping: map[string]interface{}{
 				"id":     "uuid-" + strconv.Itoa(i),
 				"action": "service.create",
@@ -117,7 +117,7 @@ func TestHandler(t *testing.T) {
 			So(output.DatacenterID, ShouldEqual, 1)
 			So(output.Name, ShouldEqual, "Test3")
 			So(output.Version, ShouldNotBeNil)
-			So(output.Status, ShouldEqual, "in_progress")
+			So(output.Status, ShouldEqual, "done")
 			So(output.Options["sync"], ShouldBeTrue)
 			So(err, ShouldBeNil)
 		})
@@ -136,12 +136,12 @@ func TestHandler(t *testing.T) {
 				So(list[0].UUID, ShouldEqual, "uuid-20")
 				So(list[0].GroupID, ShouldEqual, 1)
 				So(list[0].UserID, ShouldEqual, 20)
-				So(list[0].Status, ShouldEqual, "in_progress")
+				So(list[0].Status, ShouldEqual, "done")
 				So(list[19].Name, ShouldEqual, "Test1")
 				So(list[19].UUID, ShouldEqual, "uuid-1")
 				So(list[19].GroupID, ShouldEqual, 1)
 				So(list[19].UserID, ShouldEqual, 1)
-				So(list[19].Status, ShouldEqual, "in_progress")
+				So(list[19].Status, ShouldEqual, "done")
 			})
 		})
 	})

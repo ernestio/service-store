@@ -33,6 +33,17 @@ func TestSetComponentHandler(t *testing.T) {
 	db.Unscoped().Delete(models.Service{}, models.Build{})
 	CreateTestData(db, 20)
 
+	Convey("Scenario: creating a service build", t, func() {
+		Convey("When receiving two events that create a build using the same service name", func() {
+			_ = n.Publish("service.set", []byte(`{"name": "Test1", "id": "uuid-98", "options":{"sync":false}}`))
+			resp, err := n.Request("service.set", []byte(`{"name": "Test1", "id": "uuid-99", "options":{"sync":false}}`), time.Second)
+			//So(err1, ShouldBeNil)
+			//So(string(resp1.Data), ShouldContainSubstring, `"status":"in_progress"`)
+			So(err, ShouldBeNil)
+			So(string(resp.Data), ShouldEqual, `{"error": "could not create service build: service in progress"}`)
+		})
+	})
+
 	Convey("Scenario: setting multiple components on a service concurrently", t, func() {
 		Convey("When receiving two events that update the same service mapping", func() {
 			id := "uuid-1"

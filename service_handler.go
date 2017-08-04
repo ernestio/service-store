@@ -195,11 +195,11 @@ func (s *ServiceView) Save() error {
 
 	switch service.Status {
 	case "initializing", "done", "errored":
-		tx.Raw("UPDATE services SET status = ? WHERE id = ?", "in_progress", service.ID)
+		err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", "in_progress", service.ID).Error
 	case "in_progress":
-		err = errors.New("could not create service build: service in progress")
+		err = errors.New(`{"error": "could not create service build: service in progress"}`)
 	default:
-		err = errors.New("could not create service build: unknown service state")
+		err = errors.New(`{"error": "could not create service build: unknown service state"}`)
 	}
 
 	if err != nil {
@@ -218,149 +218,11 @@ func (s *ServiceView) Save() error {
 
 	err = tx.Save(&build).Error
 	if err != nil {
-		log.Println(err)
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
+	s.Version = build.CreatedAt
+	s.Status = build.Status
 
 	return nil
 }
-
-/*
-
-func (e *ServiceView) requestDefinition() string {
-	body, err := json.Marshal(e)
-	if err != nil {
-		log.Panic(err)
-	}
-	res, err := n.Request("definition.map.service", body, time.Second)
-	if err != nil {
-		log.Panic(err)
-	}
-	return string(res.Data)
-}
-
-// SetComponent : sets a component on a services mapping
-func (e *ServiceView) setComponent(xc map[string]interface{}) error {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return err
-	}
-
-	err = m.SetComponent(xc)
-	if err != nil {
-		return err
-	}
-
-	data, err := m.ToJSON()
-	if err != nil {
-		return err
-	}
-
-	e.Mapping = string(data)
-
-	return nil
-}
-
-// GetComponent : returns a component from a services mapping based on it's id
-func (e *ServiceView) getComponent(id string) (*map[string]interface{}, error) {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return nil, err
-	}
-
-	return m.GetComponent(id)
-}
-
-// DeleteComponent : deletes a component from the mapping based on id
-func (e *ServiceView) deleteComponent(id string) error {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return err
-	}
-
-	err = m.DeleteComponent(id)
-	if err != nil {
-		return err
-	}
-
-	data, err := m.ToJSON()
-	if err != nil {
-		return err
-	}
-
-	e.Mapping = string(data)
-
-	return nil
-}
-
-// SetChange : sets a change on a services mapping
-func (e *ServiceView) setChange(xc map[string]interface{}) error {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return err
-	}
-
-	err = m.SetChange(xc)
-	if err != nil {
-		return err
-	}
-
-	data, err := m.ToJSON()
-	if err != nil {
-		return err
-	}
-
-	e.Mapping = string(data)
-
-	return nil
-}
-
-// GetChange : returns a change from a services mapping based on it's id
-func (e *ServiceView) getChange(id string) (*map[string]interface{}, error) {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return nil, err
-	}
-
-	return m.GetChange(id)
-}
-
-// DeleteChange : deletes a change from the mapping based on id
-func (e *ServiceView) deleteChange(id string) error {
-	var m Mapping
-
-	err := m.Load([]byte(e.Mapping))
-	if err != nil {
-		return err
-	}
-
-	err = m.DeleteChange(id)
-	if err != nil {
-		return err
-	}
-
-	data, err := m.ToJSON()
-	if err != nil {
-		return err
-	}
-
-	e.Mapping = string(data)
-
-	return nil
-}
-
-
-*/
