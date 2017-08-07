@@ -193,7 +193,6 @@ func SetChange(msg *nats.Msg) {
 // ServiceComplete : sets a services error to complete
 func ServiceComplete(msg *nats.Msg) {
 	var b models.Build
-	var err error
 
 	parts := strings.Split(msg.Subject, ".")
 
@@ -227,31 +226,15 @@ func ServiceComplete(msg *nats.Msg) {
 
 // ServiceError : sets a services error to errored
 func ServiceError(msg *nats.Msg) {
+	var b models.Build
+
 	m, err := getMessage(msg)
 	if err != nil {
 		log.Println("could not handle service complete message: " + err.Error())
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	err = b.SetStatus(m.ID, "errored")
 	if err != nil {
-		log.Println("could not get build from service complete message: " + err.Error())
-	}
-
-	s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
-	if err != nil {
-		log.Println("could not get service from service complete message: " + err.Error())
-	}
-
-	s.Status = "errored"
-	b.Status = "errored"
-
-	err = b.Update()
-	if err != nil {
-		log.Println("could not save build from service error message: " + err.Error())
-	}
-
-	err = s.Update()
-	if err != nil {
-		log.Println("could not save service from service error message: " + err.Error())
+		log.Println("could not handle service complete message: " + err.Error())
 	}
 }
