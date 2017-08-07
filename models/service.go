@@ -62,7 +62,6 @@ func (s *Service) Update() error {
 	}
 
 	stored.Options = s.Options
-	stored.Status = s.Status
 
 	return DB.Save(&stored).Error
 }

@@ -64,6 +64,12 @@ func startHandler() {
 	if _, err := n.QueueSubscribe("service.set.definition", "service-store", SetDefinition); err != nil {
 		log.Panic(err)
 	}
+	if _, err := n.Subscribe("service.*.done", ServiceComplete); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.Subscribe("service.*.error", ServiceError); err != nil {
+		log.Panic(err)
+	}
 }
 
 func main() {

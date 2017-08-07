@@ -77,6 +77,39 @@ func (b *Build) Delete() error {
 	return DB.Delete(b).Error
 }
 
+// SetStatus : sets the status of a build and its respective service
+func (b *Build) SetStatus(id string, status string) error {
+	var err error
+
+	tx := DB.Begin()
+	tx.Exec("set transaction isolation level serializable")
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit().Error
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	err = tx.Exec("SELECT id, service_id, user_id, type, status FROM builds WHERE uuid = ? FOR UPDATE", id).Scan(b).Error
+	if err != nil {
+		return err
+	}
+
+	b.Status = status
+
+	err = tx.Save(err).Error
+	if err != nil {
+		return err
+	}
+
+	err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", status, b.ServiceID).Error
+
+	return err
+}
+
 // SetComponent : creates or updates a component
 func (b *Build) SetComponent(c *graph.GenericComponent) error {
 	return b.updateGraph(c, func(g *graph.Graph, c *graph.GenericComponent) error {

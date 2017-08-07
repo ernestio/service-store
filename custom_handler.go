@@ -190,8 +190,11 @@ func SetChange(msg *nats.Msg) {
 	err = b.SetChange(c)
 }
 
-// ServiceDeleteComplete : sets a services error to complete
-func ServiceDeleteComplete(msg *nats.Msg) {
+// ServiceComplete : sets a services error to complete
+func ServiceComplete(msg *nats.Msg) {
+	var b models.Build
+	var err error
+
 	parts := strings.Split(msg.Subject, ".")
 
 	m, err := getMessage(msg)
@@ -199,17 +202,22 @@ func ServiceDeleteComplete(msg *nats.Msg) {
 		log.Println("could not handle service complete message: " + err.Error())
 	}
 
-	b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+	err = b.SetStatus(m.ID, "done")
 	if err != nil {
-		log.Println("could not get build from service complete message: " + err.Error())
-	}
-
-	s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
-	if err != nil {
-		log.Println("could not get service from service complete message: " + err.Error())
+		log.Println("could not handle service complete message: " + err.Error())
 	}
 
 	if parts[1] == "delete" {
+		b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
+		if err != nil {
+			log.Println("could not get build from service complete message: " + err.Error())
+		}
+
+		s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
+		if err != nil {
+			log.Println("could not get service from service complete message: " + err.Error())
+		}
+
 		err = s.Delete()
 		if err != nil {
 			log.Println("could not get delete the service: " + err.Error())
