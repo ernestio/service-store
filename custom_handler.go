@@ -204,6 +204,7 @@ func ServiceComplete(msg *nats.Msg) {
 	err = b.SetStatus(m.ID, "done")
 	if err != nil {
 		log.Println("could not handle service complete message: " + err.Error())
+		return
 	}
 
 	if parts[1] == "delete" {

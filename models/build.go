@@ -94,7 +94,7 @@ func (b *Build) SetStatus(id string, status string) error {
 		}
 	}()
 
-	err = tx.Exec("SELECT id, service_id, user_id, type, status FROM builds WHERE uuid = ? FOR UPDATE", id).Scan(b).Error
+	err = tx.Exec("SELECT * FROM builds WHERE 'uuid' = ? for update", id).First(b).Error
 	if err != nil {
 		fmt.Println("could not update build status")
 		return err
@@ -102,7 +102,7 @@ func (b *Build) SetStatus(id string, status string) error {
 
 	b.Status = status
 
-	err = tx.Save(err).Error
+	err = tx.Save(b).Error
 	if err != nil {
 		return err
 	}
