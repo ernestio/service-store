@@ -6,7 +6,7 @@ package models
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"time"
 
 	graph "gopkg.in/r3labs/graph.v2"
@@ -94,23 +94,19 @@ func (b *Build) SetStatus(id string, status string) error {
 		}
 	}()
 
-	err = tx.Exec("SELECT * FROM builds WHERE 'uuid' = ? for update", id).First(b).Error
+	err = tx.Raw("SELECT * FROM builds WHERE uuid = ? for update", id).Scan(b).Error
 	if err != nil {
-		fmt.Println("could not update build status")
+		log.Println("could not update build status")
 		return err
 	}
 
-	b.Status = status
-
-	err = tx.Save(b).Error
+	err = tx.Exec("UPDATE builds SET status = ? WHERE id = ?", status, b.ID).Error
 	if err != nil {
+		log.Println("could not update build status")
 		return err
 	}
 
 	err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", status, b.ServiceID).Error
-	if err != nil {
-		fmt.Println("could not update service status")
-	}
 
 	return err
 }

@@ -29,8 +29,8 @@ type ServiceView struct {
 	Version      time.Time  `json:"version"`
 	Status       string     `json:"status"`
 	Options      models.Map `json:"options"`
-	Definition   string     `json:"definition"`
-	Mapping      models.Map `json:"mapping" gorm:"type:text;"`
+	Definition   string     `json:"definition,omitempty"`
+	Mapping      models.Map `json:"mapping,omitempty" gorm:"type:text;"`
 }
 
 // Find : based on the defined fields for the current entity
@@ -95,9 +95,8 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 		q = q.Where("services.name = ?", s.Name)
 	}
 
-	q.First(&stored)
-
-	if &stored == nil {
+	err := q.First(&stored).Error
+	if err != nil {
 		return false
 	}
 
@@ -105,18 +104,7 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 		return false
 	}
 
-	s.Name = stored.Name
-	s.UUID = stored.UUID
-	s.GroupID = stored.GroupID
-	s.UserID = stored.UserID
-	s.DatacenterID = stored.DatacenterID
-	s.Type = stored.Type
-	s.Version = stored.Version
-	s.Status = stored.Status
-	s.Options = stored.Options
-	s.Definition = stored.Definition
-	s.Mapping = stored.Mapping
-	s.ID = stored.ID
+	*s = stored
 
 	return true
 }
@@ -147,9 +135,7 @@ func (s *ServiceView) Update(body []byte) error {
 	}
 
 	db.Where("name = ?", s.Name).First(&service)
-	db.Save(&service)
-
-	return nil
+	return db.Save(&service).Error
 }
 
 // Delete : Will delete from database the current ServiceView
