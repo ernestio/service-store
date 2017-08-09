@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.8
+      - image: postgres:9.6.2
+      - image: nats
+    working_directory: /go/src/github.com/ernestio/service-store
+    steps:
+      - checkout
+      - run: make dev-deps
+      - run: make lint
+      - run: make test
+      - run: pwd
+      - run: git clone git@github.com:ernestio/toolset.git
+      - run: cd toolset/ernestci/ && bundle install
+      - run: pwd
+      - run:
+          name: integration tests
+          command: ruby ernestci/run.rb .ernest-ci
+          environment:
+            NATS_URI:  nats://127.0.0.1:4222
+            NATS_URI_TEST:  nats://127.0.0.1:4222
+            CURRENT_INSTANCE: http://127.0.0.1:80/
+            JWT_SECRET: test
+            ERNEST_LOG_FILE: '/tmp/ernest.log'
+            ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
+
+            #IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+            #ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio/
+            #GOBIN: /home/ubuntu/.go_workspace/bin
+#- docker kill `docker ps | grep nats | awk '{print $1}'`
+#- ruby $ROOTPATH/toolset/ernestci/run.rb .ernest-ci
+#- make lint
