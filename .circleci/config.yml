@@ -10,7 +10,12 @@ jobs:
       - checkout
       - run: make dev-deps
       - run: make lint
-      - run: make test
+      - run:
+          name: unit tests
+          command: make test
+          environment:
+            NATS_URI:  nats://127.0.0.1:4222
+            NATS_URI_TEST:  nats://127.0.0.1:4222
       - run: pwd
       - run: git clone git@github.com:ernestio/toolset.git
       - run: cd toolset/ernestci/ && bundle install
