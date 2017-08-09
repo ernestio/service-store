@@ -39,7 +39,7 @@ func (s *ServiceView) Find() []interface{} {
 	var results []interface{}
 	var services []ServiceView
 
-	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.type").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
 	if s.Name != "" && s.GroupID != 0 {
 		if s.UUID != "" {
@@ -170,6 +170,7 @@ func (s *ServiceView) Save() error {
 		Name:         s.Name,
 		GroupID:      s.GroupID,
 		DatacenterID: s.DatacenterID,
+		Type:         s.Type,
 		Options:      s.Options,
 		Status:       "initializing",
 	}

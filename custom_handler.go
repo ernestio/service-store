@@ -208,11 +208,6 @@ func ServiceComplete(msg *nats.Msg) {
 	}
 
 	if parts[1] == "delete" {
-		b, err := models.GetBuild(map[string]interface{}{"uuid": m.ID})
-		if err != nil {
-			log.Println("could not get build from service complete message: " + err.Error())
-		}
-
 		s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
 		if err != nil {
 			log.Println("could not get service from service complete message: " + err.Error())

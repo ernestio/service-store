@@ -16,12 +16,7 @@ jobs:
           environment:
             NATS_URI:  nats://127.0.0.1:4222
             NATS_URI_TEST:  nats://127.0.0.1:4222
-      - run:
-          name: Install Docker Compose
-          command: |
-            set -x
-            curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
+      - run: pip install docker-compose
       - run: git clone git@github.com:ernestio/toolset.git
       - run: cd toolset/ernestci/ && gem install bundler && bundle install
       - run:

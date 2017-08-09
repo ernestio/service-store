@@ -4,9 +4,7 @@
 
 package models
 
-import (
-	"time"
-)
+import "time"
 
 // ServiceFields ...
 var ServiceFields = structFields(Service{})
@@ -20,6 +18,7 @@ type Service struct {
 	GroupID      uint       `json:"group_id"`
 	DatacenterID uint       `json:"datacenter_id"`
 	Name         string     `json:"name" gorm:"type:varchar(100);unique_index"`
+	Type         string     `json:"type"`
 	Status       string     `json:"status"`
 	Options      Map        `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
 	Credentials  Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
@@ -42,9 +41,9 @@ func FindServices(q map[string]interface{}) []Service {
 
 // GetService ....
 func GetService(q map[string]interface{}) (*Service, error) {
-	var service *Service
-	err := query(q, ServiceFields, ServiceQueryFields).First(service).Error
-	return service, err
+	var service Service
+	err := query(q, ServiceFields, ServiceQueryFields).First(&service).Error
+	return &service, err
 }
 
 // Create ...
