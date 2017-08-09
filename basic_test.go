@@ -69,7 +69,7 @@ func CreateTestData(db *gorm.DB, count int) {
 }
 
 func TestHandler(t *testing.T) {
-	tests.CreateTestDB("test_handlers")
+	_ = tests.CreateTestDB("test_handlers")
 
 	setupNats()
 	defer n.Close()

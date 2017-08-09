@@ -33,7 +33,7 @@ func complete(reply string, data *[]byte, err *error) {
 	}
 
 	if reply != "" {
-		handler.Nats.Publish(reply, *data)
+		_ = handler.Nats.Publish(reply, *data)
 	}
 }
 

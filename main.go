@@ -75,9 +75,13 @@ func startHandler() {
 func main() {
 	setupNats()
 	setupPg("services")
-	startHandler()
 
-	Migrate(db)
+	err := Migrate(db)
+	if err != nil {
+		panic(err)
+	}
+
+	startHandler()
 
 	runtime.Goexit()
 }

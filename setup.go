@@ -5,9 +5,7 @@
 package main
 
 import (
-	"log"
 	"os"
-	"time"
 
 	ecc "github.com/ernestio/ernest-config-client"
 	"github.com/ernestio/service-store/models"
@@ -23,12 +21,4 @@ func setupNats() {
 func setupPg(dbname string) {
 	db = c.Postgres(dbname)
 	models.DB = db
-	for {
-		if err := db.AutoMigrate(&models.Service{}).Error; err != nil {
-			log.Println("could not connect run migrations. retrying")
-			time.Sleep(time.Second * 10)
-			continue
-		}
-		return
-	}
 }

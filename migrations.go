@@ -19,8 +19,8 @@ func Migrate(db *gorm.DB) error {
 	var builds []models.Build
 
 	if db.HasTable(models.Build{}) || !db.HasTable(models.Service{}) {
-		fmt.Println("skipping migration")
-		return nil
+		fmt.Println("skipping complex migration")
+		return db.AutoMigrate(models.Service{}, models.Build{}).Error
 	}
 
 	db.CreateTable(models.Build{})

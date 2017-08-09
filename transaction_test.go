@@ -16,7 +16,7 @@ import (
 )
 
 func TestSetComponentHandler(t *testing.T) {
-	tests.CreateTestDB("test_transactions")
+	_ = tests.CreateTestDB("test_transactions")
 
 	setupNats()
 	defer n.Close()
