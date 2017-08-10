@@ -17,7 +17,7 @@ jobs:
             NATS_URI:  nats://127.0.0.1:4222
             NATS_URI_TEST:  nats://127.0.0.1:4222
       - run:
-          name: Install Docker Compose
+          name: install docker compose
           command: |
             set -x
             sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
@@ -34,15 +34,3 @@ jobs:
             JWT_SECRET: test
             ERNEST_LOG_FILE: '/tmp/ernest.log'
             ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
-
-            #IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
-            #ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio/
-            #GOBIN: /home/ubuntu/.go_workspace/bin
-#- docker kill `docker ps | grep nats | awk '{print $1}'`
-#- ruby $ROOTPATH/toolset/ernestci/run.rb .ernest-ci
-#- make lint
-
-
-
-
-@datacenter_update @service_reset
