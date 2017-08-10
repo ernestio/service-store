@@ -22,7 +22,7 @@ jobs:
             set -x
             sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m`
             sudo chmod +x docker-compose
-            sudo mv docker-compose /usr/local/bin/docker-compose
+            sudo mv docker-compose /usr/local/bin/docker-compose -O docker-compose
       - run: git clone git@github.com:ernestio/toolset.git
       - run: cd toolset/ernestci/ && gem install bundler && bundle install
       - run:
