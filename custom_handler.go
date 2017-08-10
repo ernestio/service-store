@@ -251,20 +251,20 @@ func SetBuildStatus(msg *nats.Msg) {
 	}
 
 	if bs.ID == "" && bs.Name == "" {
-		n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+		_ = n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 		return
 	}
 
 	if bs.ID == "" && bs.Name != "" {
 		s, err := models.GetService(map[string]interface{}{"name": bs.Name})
 		if err != nil {
-			n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+			_ = n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 			return
 		}
 
 		cb, err := models.GetLatestBuild(s.ID)
 		if err != nil {
-			n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+			_ = n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 			return
 		}
 
@@ -273,8 +273,9 @@ func SetBuildStatus(msg *nats.Msg) {
 
 	err = b.SetStatus(bs.ID, bs.Status)
 	if err != nil {
-		n.Publish(msg.Reply, []byte(`{"error": "`+err.Error()+`"}`))
+		_ = n.Publish(msg.Reply, []byte(`{"error": "`+err.Error()+`"}`))
 		return
 	}
-	n.Publish(msg.Reply, []byte(`{"status": "ok"}`))
+
+	_ = n.Publish(msg.Reply, []byte(`{"status": "ok"}`))
 }
