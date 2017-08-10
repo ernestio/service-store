@@ -52,6 +52,14 @@ func GetBuild(q map[string]interface{}) (*Build, error) {
 	return &build, err
 }
 
+// GetLatestBuild : gets the latest build of a service
+func GetLatestBuild(serviceid uint) (*Build, error) {
+	var build Build
+	q := map[string]interface{}{"service_id": serviceid}
+	err := query(q, BuildFields, []string{}).First(&build).Order("created_at desc").Error
+	return &build, err
+}
+
 // Create ...
 func (b *Build) Create() error {
 	return DB.Create(b).Error

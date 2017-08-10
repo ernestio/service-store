@@ -234,3 +234,47 @@ func ServiceError(msg *nats.Msg) {
 		log.Println("could not handle service complete message: " + err.Error())
 	}
 }
+
+// SetBuildStatus : sets the status of a build
+func SetBuildStatus(msg *nats.Msg) {
+	var b models.Build
+	var bs struct {
+		ID     string `json:"id"`
+		Name   string `json:"name"`
+		Status string `json:"status"`
+	}
+
+	err := json.Unmarshal(msg.Data, &bs)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	if bs.ID == "" && bs.Name == "" {
+		n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+		return
+	}
+
+	if bs.ID == "" && bs.Name != "" {
+		s, err := models.GetService(map[string]interface{}{"name": bs.Name})
+		if err != nil {
+			n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+			return
+		}
+
+		cb, err := models.GetLatestBuild(s.ID)
+		if err != nil {
+			n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
+			return
+		}
+
+		bs.ID = cb.UUID
+	}
+
+	err = b.SetStatus(bs.ID, bs.Status)
+	if err != nil {
+		n.Publish(msg.Reply, []byte(`{"error": "`+err.Error()+`"}`))
+		return
+	}
+	n.Publish(msg.Reply, []byte(`{"status": "ok"}`))
+}

@@ -70,6 +70,9 @@ func startHandler() {
 	if _, err := n.QueueSubscribe("service.*.error", "service-store", ServiceError); err != nil {
 		log.Panic(err)
 	}
+	if _, err := n.QueueSubscribe("build.set.status", "service-store", SetBuildStatus); err != nil {
+		log.Panic(err)
+	}
 }
 
 func main() {
