@@ -23,7 +23,12 @@ jobs:
             sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > docker-compose
             sudo chmod +x docker-compose
             sudo mv docker-compose /usr/local/bin/docker-compose
-      - run: sudo apt install ruby2.2 gem
+      - run:
+          name: install ruby
+          command: |
+            set -x
+            sudo apt update
+            sudo apt install ruby2.2 gem
       - run: git clone git@github.com:ernestio/toolset.git
       - run: cd toolset/ernestci/ && gem install bundler && bundle install
       - run:
