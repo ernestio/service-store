@@ -41,7 +41,11 @@ func (s *ServiceView) Find() []interface{} {
 
 	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.type").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
-	if s.Name != "" && s.GroupID != 0 {
+	if len(s.IDs) > 0 {
+		q = q.Where("builds.uuid in (?)", s.IDs)
+	} else if len(s.Names) > 0 {
+		q = q.Where("services.name in (?)", s.Names)
+	} else if s.Name != "" && s.GroupID != 0 {
 		if s.UUID != "" {
 			q = q.Where("services.name = ?", s.Name).Where("services.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID)
 		} else {

@@ -146,6 +146,23 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
+	Convey("Scenario: find services by multiple ids", t, func() {
+		Convey("Given services exist on the database", func() {
+			Convey("Then I should get a list of services", func() {
+				var list1 []ServiceView
+				var list2 []ServiceView
+				msg, _ := n.Request("service.find", []byte(`{"names":["Test1", "Test2", "Test3"]}`), time.Second)
+				err := json.Unmarshal(msg.Data, &list1)
+				So(err, ShouldBeNil)
+				So(len(list1), ShouldEqual, 3)
+				msg, _ = n.Request("service.find", []byte(`{"ids":["uuid-1", "uuid-2", "uuid-3"]}`), time.Second)
+				err = json.Unmarshal(msg.Data, &list2)
+				So(err, ShouldBeNil)
+				So(len(list2), ShouldEqual, 3)
+			})
+		})
+	})
+
 	Convey("Scenario: deleting a service", t, func() {
 		Convey("Given the service does not exist on the database", func() {
 			msg, err := n.Request("service.del", []byte(`{"id":"32"}`), time.Second)
