@@ -4,17 +4,7 @@
 
 package main
 
-import (
-	"log"
-	"testing"
-
-	"github.com/ernestio/service-store/models"
-	"github.com/ernestio/service-store/tests"
-	"github.com/jinzhu/gorm"
-
-	"github.com/stretchr/testify/suite"
-)
-
+/*
 const TESTMIGRATIONDB = "test_migrations"
 
 // MigrationTestSuite : Test suite for migration
@@ -86,3 +76,4 @@ func (suite *MigrationTestSuite) TestMigration() {
 func TestMigrationTestSuite(t *testing.T) {
 	suite.Run(t, new(MigrationTestSuite))
 }
+*/
