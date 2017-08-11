@@ -17,7 +17,7 @@ import (
 
 var n *nats.Conn
 var db *gorm.DB
-var err error
+
 var handler natsdb.Handler
 
 func startHandler() {
@@ -27,62 +27,63 @@ func startHandler() {
 		DeletedMessage:         []byte(`{"status":"deleted"}`),
 		Nats:                   n,
 		NewModel: func() natsdb.Model {
-			return &Entity{}
+			return &ServiceView{}
 		},
 	}
 
-	if _, err := n.Subscribe("service.get", handler.Get); err != nil {
+	if _, err := n.QueueSubscribe("service.get", "service-store", handler.Get); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.del", handler.Del); err != nil {
+	if _, err := n.QueueSubscribe("service.del", "service-store", handler.Del); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set", handler.Set); err != nil {
+	if _, err := n.QueueSubscribe("service.set", "service-store", handler.Set); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.find", handler.Find); err != nil {
+	if _, err := n.QueueSubscribe("service.find", "service-store", handler.Find); err != nil {
 		log.Panic(err)
 	}
-
-	if _, err := n.Subscribe("service.get.mapping", GetMapping); err != nil {
+	if _, err := n.QueueSubscribe("service.get.mapping", "service-store", GetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping", SetMapping); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping", "service-store", SetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping.component", SetComponent); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping.component", "service-store", SetComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.del.mapping.component", DeleteComponent); err != nil {
+	if _, err := n.QueueSubscribe("service.del.mapping.component", "service-store", DeleteComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.mapping.change", SetChange); err != nil {
+	if _, err := n.QueueSubscribe("service.set.mapping.change", "service-store", SetChange); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.del.mapping.change", DeleteChange); err != nil {
+	if _, err := n.QueueSubscribe("service.get.definition", "service-store", GetDefinition); err != nil {
 		log.Panic(err)
 	}
-
-	if _, err := n.Subscribe("service.get.definition", GetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("service.set.definition", "service-store", SetDefinition); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.Subscribe("service.set.definition", SetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("service.*.done", "service-store", ServiceComplete); err != nil {
 		log.Panic(err)
 	}
-
-	if _, err := n.Subscribe("service.*.done", ServiceComplete); err != nil {
+	if _, err := n.QueueSubscribe("service.*.error", "service-store", ServiceError); err != nil {
 		log.Panic(err)
 	}
-
-	if _, err := n.Subscribe("service.*.error", ServiceError); err != nil {
+	if _, err := n.QueueSubscribe("build.set.status", "service-store", SetBuildStatus); err != nil {
 		log.Panic(err)
 	}
-
 }
 
 func main() {
 	setupNats()
-	setupPg()
+	setupPg("services")
+
+	err := Migrate(db)
+	if err != nil {
+		panic(err)
+	}
+
 	startHandler()
 
 	runtime.Goexit()
