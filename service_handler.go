@@ -29,6 +29,7 @@ type ServiceView struct {
 	Version      time.Time  `json:"version"`
 	Status       string     `json:"status"`
 	Options      models.Map `json:"options"`
+	Credentials  models.Map `json:"credentials"`
 	Definition   string     `json:"definition,omitempty"`
 	Mapping      models.Map `json:"mapping,omitempty" gorm:"type:text;"`
 }
@@ -39,7 +40,7 @@ func (s *ServiceView) Find() []interface{} {
 	var results []interface{}
 	var services []ServiceView
 
-	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.type").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.credentials, services.type").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
 	if len(s.IDs) > 0 {
 		q = q.Where("builds.uuid in (?)", s.IDs)
@@ -135,7 +136,8 @@ func (s *ServiceView) Update(body []byte) error {
 	}
 
 	service := models.Service{
-		Options: s.Options,
+		Options:     s.Options,
+		Credentials: s.Credentials,
 	}
 
 	db.Where("name = ?", s.Name).First(&service)
@@ -176,6 +178,7 @@ func (s *ServiceView) Save() error {
 		DatacenterID: s.DatacenterID,
 		Type:         s.Type,
 		Options:      s.Options,
+		Credentials:  s.Credentials,
 		Status:       "initializing",
 	}
 
