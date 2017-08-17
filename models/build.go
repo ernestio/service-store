@@ -56,7 +56,7 @@ func GetBuild(q map[string]interface{}) (*Build, error) {
 func GetLatestBuild(serviceid uint) (*Build, error) {
 	var build Build
 	q := map[string]interface{}{"service_id": serviceid}
-	err := query(q, BuildFields, []string{}).First(&build).Order("created_at desc").Error
+	err := query(q, BuildFields, []string{}).Order("created_at desc").First(&build).Error
 	return &build, err
 }
 
