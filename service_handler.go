@@ -92,7 +92,7 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 	s.MapInput(msg)
 	var stored ServiceView
 
-	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.credentials").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
 
 	if s.UUID != "" {
 		q = q.Where("builds.uuid = ?", s.UUID)
@@ -135,12 +135,13 @@ func (s *ServiceView) Update(body []byte) error {
 		return errors.New("service name was not specified")
 	}
 
-	service := models.Service{
-		Options:     s.Options,
-		Credentials: s.Credentials,
-	}
+	var service models.Service
 
 	db.Where("name = ?", s.Name).First(&service)
+
+	service.Options = s.Options
+	service.Credentials = s.Credentials
+
 	return db.Save(&service).Error
 }
 

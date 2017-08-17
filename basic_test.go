@@ -29,7 +29,10 @@ func CreateTestData(db *gorm.DB, count int) {
 				"sync_type":     "hard",
 				"sync_interval": 5,
 			},
-			Credentials: map[string]interface{}{},
+			Credentials: map[string]interface{}{
+				"username": "test",
+				"password": "test",
+			},
 		})
 	}
 
@@ -182,23 +185,27 @@ func TestHandler(t *testing.T) {
 	Convey("Scenario: service set", t, func() {
 		Convey("Given we don't provide any id as part of the body", func() {
 			Convey("Then it should return the created record and it should be stored on DB", func() {
-				msg, err := n.Request("service.set", []byte(`{"name":"test-1"}`), time.Second)
+				msg, err := n.Request("service.set", []byte(`{"name":"test-1", "credentials": {"username":"test2", "password":"test2"}}`), time.Second)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
 				So(output.ID, ShouldNotEqual, 0)
 				So(output.UUID, ShouldNotBeNil)
 				So(output.Name, ShouldEqual, "test-1")
+				So(output.Credentials["username"], ShouldEqual, "test2")
+				So(output.Credentials["password"], ShouldEqual, "test2")
 				So(err, ShouldBeNil)
 			})
 		})
 
 		Convey("Given we provide an unexisting id", func() {
 			Convey("Then it should store the service", func() {
-				msg, err := n.Request("service.set", []byte(`{"id": "unexisting", "name":"test-2"}`), time.Second)
+				msg, err := n.Request("service.set", []byte(`{"id": "unexisting", "name":"test-2", "credentials": {"username":"test2", "password":"test2"}}`), time.Second)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
 				So(output.UUID, ShouldEqual, "unexisting")
 				So(output.Name, ShouldEqual, "test-2")
+				So(output.Credentials["username"], ShouldEqual, "test2")
+				So(output.Credentials["password"], ShouldEqual, "test2")
 				So(err, ShouldBeNil)
 			})
 		})
@@ -207,12 +214,14 @@ func TestHandler(t *testing.T) {
 			Convey("When I update an existing entity", func() {
 				id := "uuid-4"
 
-				msg, err := n.Request("service.set", []byte(`{"id": "`+id+`", "options":{"sync":false}}`), time.Second)
+				msg, err := n.Request("service.set", []byte(`{"id": "`+id+`", "credentials": {"username":"test2", "password":"test2"}}`), time.Second)
 				So(err, ShouldBeNil)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
 				Convey("Then we should receive an updated entity", func() {
 					So(output.UUID, ShouldEqual, id)
+					So(output.Credentials["username"], ShouldEqual, "test2")
+					So(output.Credentials["password"], ShouldEqual, "test2")
 				})
 				Convey("And non provided fields should not be updated", func() {
 					So(output.Options["sync"], ShouldBeTrue)
