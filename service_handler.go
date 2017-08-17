@@ -188,6 +188,11 @@ func (s *ServiceView) Save() error {
 		return err
 	}
 
+	// if no build properties are sent, just create the service entry
+	if s.UUID == "" && s.Type == "" {
+		return nil
+	}
+
 	switch service.Status {
 	case "initializing", "done", "errored":
 		err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", "in_progress", service.ID).Error
@@ -219,5 +224,12 @@ func (s *ServiceView) Save() error {
 	s.Version = build.CreatedAt
 	s.Status = build.Status
 
-	return nil
+	if s.Credentials == nil {
+		return nil
+	}
+
+	service.Credentials = s.Credentials
+	err = tx.Save(&service).Error
+
+	return err
 }

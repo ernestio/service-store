@@ -188,7 +188,6 @@ func TestHandler(t *testing.T) {
 				msg, err := n.Request("service.set", []byte(`{"name":"test-1", "credentials": {"username":"test2", "password":"test2"}}`), time.Second)
 				output := ServiceView{}
 				output.LoadFromInput(msg.Data)
-				So(output.ID, ShouldNotEqual, 0)
 				So(output.UUID, ShouldNotBeNil)
 				So(output.Name, ShouldEqual, "test-1")
 				So(output.Credentials["username"], ShouldEqual, "test2")
