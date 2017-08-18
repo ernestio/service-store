@@ -208,12 +208,12 @@ func ServiceComplete(msg *nats.Msg) {
 	}
 
 	if parts[1] == "delete" {
-		s, err := models.GetService(map[string]interface{}{"id": b.ServiceID})
+		e, err := models.GetEnvironment(map[string]interface{}{"id": b.EnvironmentID})
 		if err != nil {
 			log.Println("could not get service from service complete message: " + err.Error())
 		}
 
-		err = s.Delete()
+		err = e.Delete()
 		if err != nil {
 			log.Println("could not get delete the service: " + err.Error())
 		}
@@ -256,13 +256,13 @@ func SetBuildStatus(msg *nats.Msg) {
 	}
 
 	if bs.ID == "" && bs.Name != "" {
-		s, err := models.GetService(map[string]interface{}{"name": bs.Name})
+		e, err := models.GetEnvironment(map[string]interface{}{"name": bs.Name})
 		if err != nil {
 			_ = n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 			return
 		}
 
-		cb, err := models.GetLatestBuild(s.ID)
+		cb, err := models.GetLatestBuild(e.ID)
 		if err != nil {
 			_ = n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 			return

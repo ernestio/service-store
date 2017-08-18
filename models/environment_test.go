@@ -17,13 +17,13 @@ import (
 
 const TESTSERVICEDB = "test_services"
 
-// ServiceTestSuite : Test suite for migration
-type ServiceTestSuite struct {
+// EnvironmentTestSuite : Test suite for migration
+type EnvironmentTestSuite struct {
 	suite.Suite
 }
 
 // SetupTest : sets up test suite
-func (suite *ServiceTestSuite) SetupTest() {
+func (suite *EnvironmentTestSuite) SetupTest() {
 	err := tests.CreateTestDB(TESTSERVICEDB)
 	if err != nil {
 		log.Fatal(err)
@@ -36,11 +36,11 @@ func (suite *ServiceTestSuite) SetupTest() {
 
 	//DB.LogMode(true)
 
-	DB.AutoMigrate(Service{})
-	DB.Unscoped().Delete(Service{})
+	DB.AutoMigrate(Environment{})
+	DB.Unscoped().Delete(Environment{})
 
 	for i := 1; i <= 10; i++ {
-		DB.Create(&Service{
+		DB.Create(&Environment{
 			Name:         "Test" + strconv.Itoa(i),
 			GroupID:      1,
 			DatacenterID: 1,
@@ -55,12 +55,12 @@ func (suite *ServiceTestSuite) SetupTest() {
 	}
 }
 
-func (suite *ServiceTestSuite) TestServices() {
-	suite.testFindServices()
+func (suite *EnvironmentTestSuite) TestEnvironments() {
+	suite.testFindEnvironments()
 }
 
-func (suite *ServiceTestSuite) testFindServices() {
-	services := FindServices(map[string]interface{}{
+func (suite *EnvironmentTestSuite) testFindEnvironments() {
+	services := FindEnvironments(map[string]interface{}{
 		"name":     "Test1",
 		"group_id": 1,
 	})
@@ -74,7 +74,7 @@ func (suite *ServiceTestSuite) testFindServices() {
 	suite.Equal(services[0].Options["sync"], true)
 }
 
-// TestServiceTestSuite : Test suite for migration
-func TestServiceTestSuite(t *testing.T) {
-	suite.Run(t, new(ServiceTestSuite))
+// TestEnvironmentTestSuite : Test suite for migration
+func TestEnvironmentTestSuite(t *testing.T) {
+	suite.Run(t, new(EnvironmentTestSuite))
 }

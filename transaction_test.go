@@ -26,11 +26,11 @@ func TestSetComponentHandler(t *testing.T) {
 	})
 
 	setupPg("test_transactions")
-	db.AutoMigrate(models.Service{}, models.Build{})
+	db.AutoMigrate(models.Environment{}, models.Build{})
 
 	startHandler()
 
-	db.Unscoped().Delete(models.Service{}, models.Build{})
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
 	CreateTestData(db, 20)
 
 	Convey("Scenario: creating a service build", t, func() {

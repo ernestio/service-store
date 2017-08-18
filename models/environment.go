@@ -6,14 +6,14 @@ package models
 
 import "time"
 
-// ServiceFields ...
-var ServiceFields = structFields(Service{})
+// EnvironmentFields ...
+var EnvironmentFields = structFields(Environment{})
 
-// ServiceQueryFields ...
-var ServiceQueryFields = []string{"ids", "names"}
+// EnvironmentQueryFields ...
+var EnvironmentQueryFields = []string{"ids", "names"}
 
-// Service : the database mapped entity
-type Service struct {
+// Environment : the database mapped entity
+type Environment struct {
 	ID           uint       `json:"id" gorm:"primary_key"`
 	GroupID      uint       `json:"group_id"`
 	DatacenterID uint       `json:"datacenter_id"`
@@ -28,49 +28,49 @@ type Service struct {
 }
 
 // TableName : set Entity's table name to be services
-func (s *Service) TableName() string {
-	return "services"
+func (e *Environment) TableName() string {
+	return "environments"
 }
 
-// FindServices : finds a service
-func FindServices(q map[string]interface{}) []Service {
-	var services []Service
-	query(q, ServiceFields, ServiceQueryFields).Find(&services)
+// FindEnvironments : finds a service
+func FindEnvironments(q map[string]interface{}) []Environment {
+	var services []Environment
+	query(q, EnvironmentFields, EnvironmentQueryFields).Find(&services)
 	return services
 }
 
-// GetService ....
-func GetService(q map[string]interface{}) (*Service, error) {
-	var service Service
-	err := query(q, ServiceFields, ServiceQueryFields).First(&service).Error
+// GetEnvironment ....
+func GetEnvironment(q map[string]interface{}) (*Environment, error) {
+	var service Environment
+	err := query(q, EnvironmentFields, EnvironmentQueryFields).First(&service).Error
 	return &service, err
 }
 
 // Create ...
-func (s *Service) Create() error {
-	return DB.Create(s).Error
+func (e *Environment) Create() error {
+	return DB.Create(e).Error
 }
 
 // Update ...
-func (s *Service) Update() error {
-	var stored Service
+func (e *Environment) Update() error {
+	var stored Environment
 
-	err := DB.Where("id = ?", s.ID).First(&stored).Error
+	err := DB.Where("id = ?", e.ID).First(&stored).Error
 	if err != nil {
 		return err
 	}
 
-	stored.Options = s.Options
+	stored.Options = e.Options
 
 	return DB.Save(&stored).Error
 }
 
 // Delete ...
-func (s *Service) Delete() error {
-	err := DB.Unscoped().Where("service_id = ?", s.ID).Delete(Build{}).Error
+func (e *Environment) Delete() error {
+	err := DB.Unscoped().Where("environment_id = ?", e.ID).Delete(Build{}).Error
 	if err != nil {
 		return err
 	}
 
-	return DB.Unscoped().Delete(s).Error
+	return DB.Unscoped().Delete(e).Error
 }

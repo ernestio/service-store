@@ -16,13 +16,19 @@ machine:
     ERNEST_LOG_FILE: '/tmp/ernest.log'
     ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio/
     ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
-
   hosts:
     ernest.local: 127.0.0.1
 
 dependencies:
   override:
-    - echo "CREATE DATABASE services;" | psql -U postgres
+    - mkdir -p "$GOPATH/src/$IMPORT_PATH"
+    - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
+    - make dev-deps
+    - mkdir -p $ROOTPATH/
+    - rm -rf $ROOTPATH/service-store
+    - cp -R /home/ubuntu/service-store $ROOTPATH/service-store
+    - cd $ROOTPATH/service-store/ && make install
+    - echo "CREATE DATABASE environments;" | psql -U postgres
     - docker run -d -p 4222:4222 nats
     - make dev-deps
     - mkdir -p $ROOTPATH/

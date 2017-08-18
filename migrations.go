@@ -5,8 +5,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/ernestio/service-store/models"
 	"github.com/jinzhu/gorm"
 )
@@ -18,38 +16,40 @@ var DepreciatedColumns = []string{"options", "sync", "sync_type", "sync_interval
 func Migrate(db *gorm.DB) error {
 	// var builds []models.Build
 
-	if db.HasTable(models.Build{}) || !db.HasTable(models.Service{}) {
-		fmt.Println("skipping complex migration")
-		return db.AutoMigrate(models.Service{}, models.Build{}).Error
-	}
+	return db.AutoMigrate(models.Environment{}, models.Build{}).Error
 
 	/*
-		db.CreateTable(models.Build{})
+		if db.HasTable(models.Build{}) || !db.HasTable(models.Environment{}) {
+			fmt.Println("skipping complex migration")
 
-		// Create builds from service records
-		db.Table("services").Select("id as service_id, uuid, user_id, status, mapping, definition, created_at, updated_at").Find(&builds)
-
-		for _, b := range builds {
-			// update the builds service id to the most recent service build
-			var services []models.Service
-
-			db.Table("services").Select("id, name").Where("id = ?", b.ServiceID).Find(&services)
-			db.Raw("SELECT ID FROM services s1 WHERE updated_at = (SELECT MAX(updated_at) FROM services s2 WHERE s1.name = s2.name) AND name = ?;", services[0].Name).Scan(&services)
-
-			b.ServiceID = services[0].ID
-			b.Type = "apply"
-			db.Table("builds").Create(&b)
 		}
 
-		// Clear out older versions of services : scary!
-		db.Exec("DELETE FROM services s1 WHERE updated_at != (SELECT MAX(updated_at) FROM services s2 WHERE s1.name = s2.name);")
+			db.CreateTable(models.Build{})
 
-		// Remove options column
-		for _, col := range DepreciatedColumns {
-			db.Table("services").DropColumn(col)
-		}
+			// Create builds from service records
+			db.Table("environments").Select("id as service_id, uuid, user_id, status, mapping, definition, created_at, updated_at").Find(&builds)
 
-		db.AutoMigrate(models.Service{})
+			for _, b := range builds {
+				// update the builds service id to the most recent service build
+				var environments []models.Service
+
+				db.Table("environments").Select("id, name").Where("id = ?", b.EnvironmentID).Find(&environments)
+				db.Raw("SELECT ID FROM environments s1 WHERE updated_at = (SELECT MAX(updated_at) FROM environments s2 WHERE s1.name = s2.name) AND name = ?;", environments[0].Name).Scan(&environments)
+
+				b.EnvironmentID = environments[0].ID
+				b.Type = "apply"
+				db.Table("builds").Create(&b)
+			}
+
+			// Clear out older versions of environments : scary!
+			db.Exec("DELETE FROM environments s1 WHERE updated_at != (SELECT MAX(updated_at) FROM environments s2 WHERE s1.name = s2.name);")
+
+			// Remove options column
+			for _, col := range DepreciatedColumns {
+				db.Table("environments").DropColumn(col)
+			}
+
+			db.AutoMigrate(models.Service{})
 	*/
 
 	return nil

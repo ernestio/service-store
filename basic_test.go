@@ -19,7 +19,7 @@ import (
 
 func CreateTestData(db *gorm.DB, count int) {
 	for i := 1; i <= count; i++ {
-		db.Create(&models.Service{
+		db.Create(&models.Environment{
 			Name:         "Test" + strconv.Itoa(i),
 			GroupID:      1,
 			DatacenterID: 1,
@@ -38,10 +38,10 @@ func CreateTestData(db *gorm.DB, count int) {
 
 	for i := 1; i <= count; i++ {
 		db.Create(&models.Build{
-			UUID:      "uuid-" + strconv.Itoa(i),
-			ServiceID: uint(i),
-			UserID:    uint(i),
-			Status:    "done",
+			UUID:          "uuid-" + strconv.Itoa(i),
+			EnvironmentID: uint(i),
+			UserID:        uint(i),
+			Status:        "done",
 			Mapping: map[string]interface{}{
 				"id":     "uuid-" + strconv.Itoa(i),
 				"action": "service.create",
@@ -82,11 +82,11 @@ func TestHandler(t *testing.T) {
 	})
 
 	setupPg("test_handlers")
-	db.AutoMigrate(models.Service{}, models.Build{})
+	db.AutoMigrate(models.Environment{}, models.Build{})
 
 	startHandler()
 
-	db.Unscoped().Delete(models.Service{}, models.Build{})
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
 	CreateTestData(db, 20)
 
 	Convey("Scenario: getting a service", t, func() {

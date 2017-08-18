@@ -20,17 +20,17 @@ type GraphTransform func(g *graph.Graph, c *graph.GenericComponent) error
 
 // Build : stores build data
 type Build struct {
-	ID         uint       `json:"-" gorm:"primary_key"`
-	UUID       string     `json:"id"`
-	ServiceID  uint       `json:"service_id" gorm:"ForeignKey:UserRefer"`
-	UserID     uint       `json:"user_id"`
-	Type       string     `json:"type"`
-	Status     string     `json:"status"`
-	Definition string     `json:"definition" gorm:"type:text;"`
-	Mapping    Map        `json:"mapping" gorm:"type: jsonb not null default '{}'::jsonb"`
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	DeletedAt  *time.Time `json:"-" sql:"index"`
+	ID            uint       `json:"-" gorm:"primary_key"`
+	UUID          string     `json:"id"`
+	EnvironmentID uint       `json:"environment_id" gorm:"ForeignKey:UserRefer"`
+	UserID        uint       `json:"user_id"`
+	Type          string     `json:"type"`
+	Status        string     `json:"status"`
+	Definition    string     `json:"definition" gorm:"type:text;"`
+	Mapping       Map        `json:"mapping" gorm:"type: jsonb not null default '{}'::jsonb"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	DeletedAt     *time.Time `json:"-" sql:"index"`
 }
 
 // TableName : set Entity's table name to be builds
@@ -52,10 +52,10 @@ func GetBuild(q map[string]interface{}) (*Build, error) {
 	return &build, err
 }
 
-// GetLatestBuild : gets the latest build of a service
-func GetLatestBuild(serviceid uint) (*Build, error) {
+// GetLatestBuild : gets the latest build of a environment
+func GetLatestBuild(environmentid uint) (*Build, error) {
 	var build Build
-	q := map[string]interface{}{"service_id": serviceid}
+	q := map[string]interface{}{"environment_id": environmentid}
 	err := query(q, BuildFields, []string{}).Order("created_at desc").First(&build).Error
 	return &build, err
 }
@@ -86,7 +86,7 @@ func (b *Build) Delete() error {
 	return DB.Delete(b).Error
 }
 
-// SetStatus : sets the status of a build and its respective service
+// SetStatus : sets the status of a build and its respective environment
 func (b *Build) SetStatus(id string, status string) error {
 	var err error
 
@@ -114,7 +114,7 @@ func (b *Build) SetStatus(id string, status string) error {
 		return err
 	}
 
-	err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", status, b.ServiceID).Error
+	err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", status, b.EnvironmentID).Error
 
 	return err
 }

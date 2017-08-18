@@ -41,12 +41,12 @@ func (suite *BuildTestSuite) SetupTest() {
 
 	for i := 1; i <= 10; i++ {
 		DB.Create(&Build{
-			UUID:       "uuid+" + strconv.Itoa(i),
-			ServiceID:  1,
-			UserID:     uint(i),
-			Status:     "in_progress",
-			Mapping:    map[string]interface{}{},
-			Definition: "yaml",
+			UUID:          "uuid+" + strconv.Itoa(i),
+			EnvironmentID: 1,
+			UserID:        uint(i),
+			Status:        "in_progress",
+			Mapping:       map[string]interface{}{},
+			Definition:    "yaml",
 		})
 	}
 }
@@ -63,7 +63,7 @@ func (suite *BuildTestSuite) testFindBuilds() {
 	suite.Equal(len(builds), 1)
 	suite.Equal(builds[0].ID, uint(1))
 	suite.Equal(builds[0].UserID, uint(1))
-	suite.Equal(builds[0].ServiceID, uint(1))
+	suite.Equal(builds[0].EnvironmentID, uint(1))
 	suite.Equal(builds[0].Definition, "yaml")
 }
 
