@@ -40,7 +40,7 @@ func (s *ServiceView) Find() []interface{} {
 	var results []interface{}
 	var services []ServiceView
 
-	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials, environments.type").Joins("INNER JOIN builds ON (builds.service_id = environments.id)")
+	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials, environments.type").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
 
 	if len(s.IDs) > 0 {
 		q = q.Where("builds.uuid in (?)", s.IDs)

@@ -51,6 +51,4 @@ func Migrate(db *gorm.DB) error {
 
 			db.AutoMigrate(models.Service{})
 	*/
-
-	return nil
 }

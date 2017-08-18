@@ -38,7 +38,7 @@ func TestSetComponentHandler(t *testing.T) {
 			_ = n.Publish("service.set", []byte(`{"name": "Test1", "id": "uuid-98", "options":{"sync":false}}`))
 			resp, err := n.Request("service.set", []byte(`{"name": "Test1", "id": "uuid-99", "options":{"sync":false}}`), time.Second)
 			So(err, ShouldBeNil)
-			So(string(resp.Data), ShouldEqual, `{"error": "could not create service build: service in progress"}`)
+			So(string(resp.Data), ShouldEqual, `{"error": "could not create environment build: service in progress"}`)
 		})
 	})
 
