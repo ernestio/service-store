@@ -40,27 +40,27 @@ func (s *ServiceView) Find() []interface{} {
 	var results []interface{}
 	var services []ServiceView
 
-	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.credentials, services.type").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials, environments.type").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
 
 	if len(s.IDs) > 0 {
 		q = q.Where("builds.uuid in (?)", s.IDs)
 	} else if len(s.Names) > 0 {
-		q = q.Where("services.name in (?)", s.Names)
+		q = q.Where("environments.name in (?)", s.Names)
 	} else if s.Name != "" && s.GroupID != 0 {
 		if s.UUID != "" {
-			q = q.Where("services.name = ?", s.Name).Where("services.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID)
+			q = q.Where("environments.name = ?", s.Name).Where("environments.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID)
 		} else {
-			q = q.Where("services.name = ?", s.Name).Where("services.group_id = ?", s.GroupID)
+			q = q.Where("environments.name = ?", s.Name).Where("environments.group_id = ?", s.GroupID)
 		}
 	} else {
 		if s.UUID != "" {
 			q = q.Where("builds.id = ?", s.UUID)
 		} else if s.Name != "" {
-			q = q.Where("services.name = ?", s.Name)
+			q = q.Where("environments.name = ?", s.Name)
 		} else if s.GroupID != 0 {
-			q = q.Where("services.group_id = ?", s.GroupID)
+			q = q.Where("environments.group_id = ?", s.GroupID)
 		} else if s.DatacenterID != 0 {
-			q = q.Where("services.datacenter_id = ?", s.DatacenterID)
+			q = q.Where("environments.datacenter_id = ?", s.DatacenterID)
 		}
 	}
 
@@ -92,12 +92,12 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 	s.MapInput(msg)
 	var stored ServiceView
 
-	q := db.Table("services").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, services.name, services.group_id, services.datacenter_id, services.options, services.credentials").Joins("INNER JOIN builds ON (builds.service_id = services.id)")
+	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
 
 	if s.UUID != "" {
 		q = q.Where("builds.uuid = ?", s.UUID)
 	} else if s.Name != "" {
-		q = q.Where("services.name = ?", s.Name)
+		q = q.Where("environments.name = ?", s.Name)
 	}
 
 	err := q.First(&stored).Error
@@ -135,23 +135,23 @@ func (s *ServiceView) Update(body []byte) error {
 		return errors.New("service name was not specified")
 	}
 
-	var service models.Service
+	var env models.Environment
 
-	db.Where("name = ?", s.Name).First(&service)
+	db.Where("name = ?", s.Name).First(&env)
 
-	service.Options = s.Options
-	service.Credentials = s.Credentials
+	env.Options = s.Options
+	env.Credentials = s.Credentials
 
-	return db.Save(&service).Error
+	return db.Save(&env).Error
 }
 
 // Delete : Will delete from database the current ServiceView
 func (s *ServiceView) Delete() error {
-	var service models.Service
+	var env models.Environment
 
-	db.Where("name = ?", s.Name).First(&service)
-	db.Unscoped().Where("id = ?", s.ID).Delete(&service)
-	db.Unscoped().Where("service_id = ?", s.ID).Delete(models.Build{})
+	db.Where("name = ?", s.Name).First(&env)
+	db.Unscoped().Where("id = ?", s.ID).Delete(&env)
+	db.Unscoped().Where("environment_id = ?", s.ID).Delete(models.Build{})
 
 	return nil
 }
@@ -173,7 +173,7 @@ func (s *ServiceView) Save() error {
 		}
 	}()
 
-	service := models.Service{
+	env := models.Environment{
 		Name:         s.Name,
 		GroupID:      s.GroupID,
 		DatacenterID: s.DatacenterID,
@@ -183,7 +183,7 @@ func (s *ServiceView) Save() error {
 		Status:       "initializing",
 	}
 
-	err = tx.Where("name = ?", s.Name).FirstOrCreate(&service).Error
+	err = tx.Where("name = ?", s.Name).FirstOrCreate(&env).Error
 	if err != nil {
 		return err
 	}
@@ -193,13 +193,13 @@ func (s *ServiceView) Save() error {
 		return nil
 	}
 
-	switch service.Status {
+	switch env.Status {
 	case "initializing", "done", "errored":
-		err = tx.Exec("UPDATE services SET status = ? WHERE id = ?", "in_progress", service.ID).Error
+		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", "in_progress", env.ID).Error
 	case "in_progress":
-		err = errors.New(`{"error": "could not create service build: service in progress"}`)
+		err = errors.New(`{"error": "could not create environment build: service in progress"}`)
 	default:
-		err = errors.New(`{"error": "could not create service build: unknown service state"}`)
+		err = errors.New(`{"error": "could not create environment build: unknown service state"}`)
 	}
 
 	if err != nil {
@@ -207,13 +207,13 @@ func (s *ServiceView) Save() error {
 	}
 
 	build := models.Build{
-		UUID:       s.UUID,
-		ServiceID:  service.ID,
-		UserID:     s.UserID,
-		Type:       s.Type,
-		Status:     "in_progress",
-		Definition: s.Definition,
-		Mapping:    s.Mapping,
+		UUID:          s.UUID,
+		EnvironmentID: env.ID,
+		UserID:        s.UserID,
+		Type:          s.Type,
+		Status:        "in_progress",
+		Definition:    s.Definition,
+		Mapping:       s.Mapping,
 	}
 
 	err = tx.Save(&build).Error
@@ -228,8 +228,8 @@ func (s *ServiceView) Save() error {
 		return nil
 	}
 
-	service.Credentials = s.Credentials
-	err = tx.Save(&service).Error
+	env.Credentials = s.Credentials
+	err = tx.Save(&env).Error
 
 	return err
 }

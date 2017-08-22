@@ -77,7 +77,7 @@ func startHandler() {
 
 func main() {
 	setupNats()
-	setupPg("services")
+	setupPg("environments")
 
 	err := Migrate(db)
 	if err != nil {
