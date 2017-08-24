@@ -42,7 +42,6 @@ func (suite *EnvironmentTestSuite) SetupTest() {
 	for i := 1; i <= 10; i++ {
 		DB.Create(&Environment{
 			Name:         "Test" + strconv.Itoa(i),
-			GroupID:      1,
 			DatacenterID: 1,
 			Status:       "in_progress",
 			Options: map[string]interface{}{
@@ -67,7 +66,6 @@ func (suite *EnvironmentTestSuite) testFindEnvironments() {
 
 	suite.Equal(len(services), 1)
 	suite.Equal(services[0].ID, uint(1))
-	suite.Equal(services[0].GroupID, uint(1))
 	suite.Equal(services[0].DatacenterID, uint(1))
 	suite.Equal(services[0].Name, "Test1")
 	suite.Equal(services[0].Status, "in_progress")
