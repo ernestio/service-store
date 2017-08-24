@@ -21,7 +21,6 @@ func CreateTestData(db *gorm.DB, count int) {
 	for i := 1; i <= count; i++ {
 		db.Create(&models.Environment{
 			Name:         "Test" + strconv.Itoa(i),
-			GroupID:      1,
 			DatacenterID: 1,
 			Status:       "done",
 			Options: map[string]interface{}{
@@ -114,9 +113,7 @@ func TestHandler(t *testing.T) {
 			msg, err := n.Request("service.get", []byte(`{"name":"`+name+`"}`), time.Second)
 			output := ServiceView{}
 			_ = json.Unmarshal(msg.Data, &output)
-
 			So(output.UUID, ShouldEqual, "uuid-3")
-			So(output.GroupID, ShouldEqual, 1)
 			So(output.DatacenterID, ShouldEqual, 1)
 			So(output.Name, ShouldEqual, "Test3")
 			So(output.Version, ShouldNotBeNil)
@@ -129,7 +126,7 @@ func TestHandler(t *testing.T) {
 	Convey("Scenario: find services", t, func() {
 		Convey("Given services exist on the database", func() {
 			Convey("Then I should get a list of services", func() {
-				msg, err := n.Request("service.find", []byte(`{"group_id":1}`), time.Second)
+				msg, err := n.Request("service.find", []byte(`{"datacenter_id":1}`), time.Second)
 				So(err, ShouldBeNil)
 
 				list := []ServiceView{}
@@ -137,14 +134,24 @@ func TestHandler(t *testing.T) {
 				So(len(list), ShouldEqual, 20)
 				So(list[0].Name, ShouldEqual, "Test20")
 				So(list[0].UUID, ShouldEqual, "uuid-20")
-				So(list[0].GroupID, ShouldEqual, 1)
 				So(list[0].UserID, ShouldEqual, 20)
 				So(list[0].Status, ShouldEqual, "done")
 				So(list[19].Name, ShouldEqual, "Test1")
 				So(list[19].UUID, ShouldEqual, "uuid-1")
-				So(list[19].GroupID, ShouldEqual, 1)
 				So(list[19].UserID, ShouldEqual, 1)
 				So(list[19].Status, ShouldEqual, "done")
+			})
+			Convey("Then I should get a list of services by id", func() {
+				msg, err := n.Request("service.find", []byte(`{"id":"uuid-1"}`), time.Second)
+				So(err, ShouldBeNil)
+
+				list := []ServiceView{}
+				_ = json.Unmarshal(msg.Data, &list)
+				So(len(list), ShouldEqual, 1)
+				So(list[0].Name, ShouldEqual, "Test1")
+				So(list[0].UUID, ShouldEqual, "uuid-1")
+				So(list[0].UserID, ShouldEqual, 1)
+				So(list[0].Status, ShouldEqual, "done")
 			})
 		})
 	})

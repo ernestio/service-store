@@ -21,7 +21,6 @@ type ServiceView struct {
 	IDs          []string   `json:"ids,omitempty" gorm:"-"`
 	Names        []string   `json:"names,omitempty" gorm:"-"`
 	UUID         string     `json:"id"`
-	GroupID      uint       `json:"group_id"`
 	UserID       uint       `json:"user_id"`
 	DatacenterID uint       `json:"datacenter_id"`
 	Name         string     `json:"name"`
@@ -40,25 +39,23 @@ func (s *ServiceView) Find() []interface{} {
 	var results []interface{}
 	var services []ServiceView
 
-	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials, environments.type").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
+	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.definition, builds.created_at as version, environments.name, environments.datacenter_id, environments.options, environments.credentials, environments.type").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
 
 	if len(s.IDs) > 0 {
 		q = q.Where("builds.uuid in (?)", s.IDs)
 	} else if len(s.Names) > 0 {
 		q = q.Where("environments.name in (?)", s.Names)
-	} else if s.Name != "" && s.GroupID != 0 {
+	} else if s.Name != "" {
 		if s.UUID != "" {
-			q = q.Where("environments.name = ?", s.Name).Where("environments.group_id = ?", s.GroupID).Where("builds.uuid = ?", s.UUID)
+			q = q.Where("environments.name = ?", s.Name).Where("builds.uuid = ?", s.UUID)
 		} else {
-			q = q.Where("environments.name = ?", s.Name).Where("environments.group_id = ?", s.GroupID)
+			q = q.Where("environments.name = ?", s.Name)
 		}
 	} else {
 		if s.UUID != "" {
-			q = q.Where("builds.id = ?", s.UUID)
+			q = q.Where("builds.uuid = ?", s.UUID)
 		} else if s.Name != "" {
 			q = q.Where("environments.name = ?", s.Name)
-		} else if s.GroupID != 0 {
-			q = q.Where("environments.group_id = ?", s.GroupID)
 		} else if s.DatacenterID != 0 {
 			q = q.Where("environments.datacenter_id = ?", s.DatacenterID)
 		}
@@ -92,7 +89,7 @@ func (s *ServiceView) LoadFromInput(msg []byte) bool {
 	s.MapInput(msg)
 	var stored ServiceView
 
-	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, environments.name, environments.group_id, environments.datacenter_id, environments.options, environments.credentials").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
+	q := db.Table("environments").Select("builds.id as id, builds.uuid, builds.user_id, builds.status, builds.created_at as version, environments.name, environments.datacenter_id, environments.options, environments.credentials").Joins("INNER JOIN builds ON (builds.environment_id = environments.id)")
 
 	if s.UUID != "" {
 		q = q.Where("builds.uuid = ?", s.UUID)
@@ -175,7 +172,6 @@ func (s *ServiceView) Save() error {
 
 	env := models.Environment{
 		Name:         s.Name,
-		GroupID:      s.GroupID,
 		DatacenterID: s.DatacenterID,
 		Type:         s.Type,
 		Options:      s.Options,

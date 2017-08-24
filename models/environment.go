@@ -15,7 +15,6 @@ var EnvironmentQueryFields = []string{"ids", "names"}
 // Environment : the database mapped entity
 type Environment struct {
 	ID           uint       `json:"id" gorm:"primary_key"`
-	GroupID      uint       `json:"group_id"`
 	DatacenterID uint       `json:"datacenter_id"`
 	Name         string     `json:"name" gorm:"type:varchar(100);unique_index"`
 	Type         string     `json:"type"`
