@@ -147,8 +147,6 @@ func (s *ServiceView) Update(body []byte) error {
 func (s *ServiceView) Delete() error {
 	var env models.Environment
 
-	fmt.Println(s.Name)
-
 	err := db.Where("name = ?", s.Name).First(&env).Error
 	if err != nil {
 		return err
