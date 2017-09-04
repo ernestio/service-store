@@ -187,6 +187,23 @@ func TestHandler(t *testing.T) {
 			So(string(msg.Data), ShouldEqual, string(handler.DeletedMessage))
 			So(err, ShouldBeNil)
 		})
+
+		Convey("Given the service exists on the database by name", func() {
+			name := "my_azure/az-test"
+
+			e := &models.Environment{Name: "my_azure/az-test"}
+			So(db.Create(e).Error, ShouldBeNil)
+			b := &models.Build{EnvironmentID: e.ID}
+			So(db.Create(b).Error, ShouldBeNil)
+
+			m := &models.Environment{}
+
+			msg, err := n.Request("service.del", []byte(`{"name":"`+name+`"}`), time.Second)
+			So(string(msg.Data), ShouldEqual, string(handler.DeletedMessage))
+			So(err, ShouldBeNil)
+			err = db.Where("name = ?", name).First(m).Error
+			So(err, ShouldNotBeNil)
+		})
 	})
 
 	Convey("Scenario: service set", t, func() {

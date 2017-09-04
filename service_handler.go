@@ -146,11 +146,12 @@ func (s *ServiceView) Update(body []byte) error {
 func (s *ServiceView) Delete() error {
 	var env models.Environment
 
-	db.Where("name = ?", s.Name).First(&env)
-	db.Unscoped().Where("id = ?", s.ID).Delete(&env)
-	db.Unscoped().Where("environment_id = ?", s.ID).Delete(models.Build{})
+	err := db.Where("name = ?", s.Name).First(&env).Error
+	if err != nil {
+		return err
+	}
 
-	return nil
+	return env.Delete()
 }
 
 // Save : Persists current entity on database
