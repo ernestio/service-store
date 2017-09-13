@@ -14,12 +14,12 @@ import (
 // BuildSet : gets an build
 func BuildSet(msg *nats.Msg) {
 	var err error
-	var build *models.Build
+	var build models.Build
 	var data []byte
 
 	defer response(msg.Reply, &data, &err)
 
-	err = json.Unmarshal(msg.Data, build)
+	err = json.Unmarshal(msg.Data, &build)
 	if err != nil {
 		return
 	}

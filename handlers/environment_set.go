@@ -14,12 +14,12 @@ import (
 // EnvSet : gets an environment
 func EnvSet(msg *nats.Msg) {
 	var err error
-	var env *models.Environment
+	var env models.Environment
 	var data []byte
 
 	defer response(msg.Reply, &data, &err)
 
-	err = json.Unmarshal(msg.Data, env)
+	err = json.Unmarshal(msg.Data, &env)
 	if err != nil {
 		return
 	}

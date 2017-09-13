@@ -14,12 +14,12 @@ import (
 // EnvDelete : gets an environment
 func EnvDelete(msg *nats.Msg) {
 	var err error
-	var env *models.Environment
+	var env models.Environment
 	var data []byte
 
 	defer response(msg.Reply, &data, &err)
 
-	err = json.Unmarshal(msg.Data, env)
+	err = json.Unmarshal(msg.Data, &env)
 	if err != nil {
 		return
 	}
@@ -30,10 +30,9 @@ func EnvDelete(msg *nats.Msg) {
 	}
 
 	err = env.Delete()
-
 	if err != nil {
 		return
 	}
 
-	data, err = json.Marshal(env)
+	data = []byte(`{"status": "success"}`)
 }

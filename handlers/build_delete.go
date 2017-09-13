@@ -35,5 +35,5 @@ func BuildDelete(msg *nats.Msg) {
 		return
 	}
 
-	data, err = json.Marshal(build)
+	data = []byte(`{"status": "success"}`)
 }

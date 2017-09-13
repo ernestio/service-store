@@ -64,7 +64,7 @@ func TestEnvironmentFind(t *testing.T) {
 		{"nonexistent", map[string]interface{}{"name": "Test100"}, 0},
 	}
 
-	setupTestSuite("test_environment_get")
+	setupTestSuite("test_environment_find")
 
 	db.Unscoped().Delete(models.Environment{}, models.Build{})
 	CreateTestData(db, 20)
@@ -81,6 +81,64 @@ func TestEnvironmentFind(t *testing.T) {
 			assert.Nil(t, err)
 
 			assert.Equal(t, tc.Expected, len(es))
+		})
+	}
+}
+
+func TestEnvironmentSet(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Event    *models.Environment
+		Expected *models.Environment
+	}{
+		{"existing", &models.Environment{ID: uint(1), Name: "Test1", Status: "done"}, &models.Environment{ID: uint(1), Name: "Test1", Status: "done"}},
+		{"nonexistent", &models.Environment{Name: "Test21"}, &models.Environment{ID: uint(21), Name: "Test21", Status: "initializing"}},
+	}
+
+	setupTestSuite("test_environment_set")
+
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
+	CreateTestData(db, 20)
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var e models.Environment
+
+			data, _ := json.Marshal(tc.Event)
+			resp, err := n.Request("environment.set", data, time.Second)
+			assert.Nil(t, err)
+
+			err = json.Unmarshal(resp.Data, &e)
+			assert.Nil(t, err)
+
+			assert.Equal(t, tc.Expected.ID, e.ID)
+			assert.Equal(t, tc.Expected.Name, e.Name)
+			assert.Equal(t, tc.Expected.Status, e.Status)
+		})
+	}
+}
+
+func TestEnvironmentDelete(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Event    *models.Environment
+		Expected string
+	}{
+		{"existing", &models.Environment{ID: uint(1)}, "success"},
+	}
+
+	setupTestSuite("test_environment_delete")
+
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
+	CreateTestData(db, 20)
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			data, _ := json.Marshal(tc.Event)
+			resp, err := n.Request("environment.del", data, time.Second)
+			assert.Nil(t, err)
+
+			assert.Contains(t, string(resp.Data), tc.Expected)
 		})
 	}
 }
