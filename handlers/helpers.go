@@ -11,17 +11,21 @@ type Error struct {
 	Error string `json:"error"`
 }
 
-func errResponse(subject string, err error) {
-	if err != nil {
-		data, _ := json.Marshal(Error{Error: err.Error()})
-		NC.Publish(subject, data)
-	}
+// Message ...
+type Message struct {
+	ID         string                 `json:"id"`
+	Definition string                 `json:"definition"`
+	Mapping    map[string]interface{} `json:"mapping"`
 }
 
-func response(subject string, data []byte, err error) {
-	if err != nil {
-		data, _ = json.Marshal(Error{Error: err.Error()})
+func response(reply string, data *[]byte, err *error) {
+	rdata := *data
+
+	if *err != nil {
+		rdata, _ = json.Marshal(Error{Error: (*err).Error()})
 	}
 
-	NC.Publish(subject, data)
+	if reply != "" {
+		NC.Publish(reply, rdata)
+	}
 }

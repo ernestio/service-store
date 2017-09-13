@@ -11,24 +11,25 @@ import (
 	"github.com/nats-io/nats"
 )
 
-// EnvGet : gets an environment
-func EnvGet(msg *nats.Msg) {
+// BuildSetDefinition : Definition field setter
+func BuildSetDefinition(msg *nats.Msg) {
 	var err error
-	var q map[string]interface{}
-	var env *models.Environment
-	var data []byte
+	var m *Message
+	var b *models.Build
 
-	defer response(msg.Reply, &data, &err)
+	defer response(msg.Reply, nil, &err)
 
-	err = json.Unmarshal(msg.Data, &q)
+	err = json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return
 	}
 
-	env, err = models.GetEnvironment(q)
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		return
 	}
 
-	data, err = json.Marshal(env)
+	b.Definition = m.Definition
+
+	err = b.Update()
 }

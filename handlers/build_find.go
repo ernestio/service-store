@@ -18,7 +18,7 @@ func BuildFind(msg *nats.Msg) {
 	var builds []models.Build
 	var data []byte
 
-	defer response(msg.Reply, data, err)
+	defer response(msg.Reply, &data, &err)
 
 	err = json.Unmarshal(msg.Data, &q)
 	if err != nil {

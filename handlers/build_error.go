@@ -6,29 +6,24 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
 )
 
-// EnvGet : gets an environment
-func EnvGet(msg *nats.Msg) {
-	var err error
-	var q map[string]interface{}
-	var env *models.Environment
-	var data []byte
+// ServiceError : sets a services error to errored
+func ServiceError(msg *nats.Msg) {
+	var m Message
+	var b models.Build
 
-	defer response(msg.Reply, &data, &err)
-
-	err = json.Unmarshal(msg.Data, &q)
+	err := json.Unmarshal(msg.Data, &m)
 	if err != nil {
-		return
+		log.Println("could not handle service complete message: " + err.Error())
 	}
 
-	env, err = models.GetEnvironment(q)
+	err = b.SetStatus(m.ID, "errored")
 	if err != nil {
-		return
+		log.Println("could not handle service complete message: " + err.Error())
 	}
-
-	data, err = json.Marshal(env)
 }

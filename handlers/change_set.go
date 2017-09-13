@@ -9,26 +9,21 @@ import (
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
+	graph "gopkg.in/r3labs/graph.v2"
 )
 
-// EnvGet : gets an environment
-func EnvGet(msg *nats.Msg) {
+// BuildSetChange : Mapping change setter
+func BuildSetChange(msg *nats.Msg) {
 	var err error
-	var q map[string]interface{}
-	var env *models.Environment
-	var data []byte
+	var b models.Build
+	var c *graph.GenericComponent
 
-	defer response(msg.Reply, &data, &err)
+	defer response(msg.Reply, nil, &err)
 
-	err = json.Unmarshal(msg.Data, &q)
+	err = json.Unmarshal(msg.Data, c)
 	if err != nil {
 		return
 	}
 
-	env, err = models.GetEnvironment(q)
-	if err != nil {
-		return
-	}
-
-	data, err = json.Marshal(env)
+	err = b.SetChange(c)
 }

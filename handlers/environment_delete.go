@@ -17,7 +17,7 @@ func EnvDelete(msg *nats.Msg) {
 	var env *models.Environment
 	var data []byte
 
-	defer response(msg.Reply, data, err)
+	defer response(msg.Reply, &data, &err)
 
 	err = json.Unmarshal(msg.Data, env)
 	if err != nil {
