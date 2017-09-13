@@ -4,6 +4,7 @@
 
 package main
 
+/*
 import (
 	"testing"
 	"time"
@@ -95,3 +96,4 @@ func TestSetComponentHandler(t *testing.T) {
 
 	})
 }
+*/

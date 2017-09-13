@@ -4,71 +4,17 @@
 
 package main
 
+/*
 import (
 	"encoding/json"
-	"strconv"
 	"testing"
 	"time"
 
 	"github.com/ernestio/service-store/models"
 	"github.com/ernestio/service-store/tests"
-	"github.com/jinzhu/gorm"
 	"github.com/nats-io/nats"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func CreateTestData(db *gorm.DB, count int) {
-	for i := 1; i <= count; i++ {
-		db.Create(&models.Environment{
-			Name:         "Test" + strconv.Itoa(i),
-			DatacenterID: 1,
-			Status:       "done",
-			Options: map[string]interface{}{
-				"sync":          true,
-				"sync_type":     "hard",
-				"sync_interval": 5,
-			},
-			Credentials: map[string]interface{}{
-				"username": "test",
-				"password": "test",
-			},
-		})
-	}
-
-	for i := 1; i <= count; i++ {
-		db.Create(&models.Build{
-			UUID:          "uuid-" + strconv.Itoa(i),
-			EnvironmentID: uint(i),
-			UserID:        uint(i),
-			Status:        "done",
-			Mapping: map[string]interface{}{
-				"id":     "uuid-" + strconv.Itoa(i),
-				"action": "service.create",
-				"components": []map[string]interface{}{
-					{
-						"_component_id": "network::test-1",
-						"_state":        "running",
-					},
-					{
-						"_component_id": "network::test-2",
-						"_state":        "running",
-					},
-				},
-				"changes": []map[string]interface{}{
-					{
-						"_component_id": "network::test-3",
-						"_state":        "waiting",
-					},
-					{
-						"_component_id": "network::test-4",
-						"_state":        "waiting",
-					},
-				},
-			},
-			Definition: "yaml",
-		})
-	}
-}
 
 func TestHandler(t *testing.T) {
 	_ = tests.CreateTestDB("test_handlers")
@@ -280,3 +226,4 @@ func TestHandler(t *testing.T) {
 	})
 
 }
+*/

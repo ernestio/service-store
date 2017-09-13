@@ -11,10 +11,10 @@ import (
 	"github.com/ernestio/service-store/handlers"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/nats-io/nats"
+	"github.com/r3labs/akira"
 )
 
-var n *nats.Conn
+var n akira.Connector
 var db *gorm.DB
 
 func startHandler() {
@@ -73,7 +73,7 @@ func startHandler() {
 	if _, err := n.QueueSubscribe("build.*.error", "environment-store", handlers.BuildError); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("build.set.status", "environment-store", SetBuildStatus); err != nil {
+	if _, err := n.QueueSubscribe("build.set.status", "environment-store", handlers.SetBuildStatus); err != nil {
 		log.Panic(err)
 	}
 }

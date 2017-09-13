@@ -13,7 +13,7 @@ import (
 	"github.com/nats-io/nats"
 )
 
-// BuildComplete : sets a services error to complete
+// BuildComplete : sets a builds status to complete
 func BuildComplete(msg *nats.Msg) {
 	var m Message
 	var b models.Build

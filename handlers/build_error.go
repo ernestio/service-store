@@ -12,8 +12,8 @@ import (
 	"github.com/nats-io/nats"
 )
 
-// ServiceError : sets a services error to errored
-func ServiceError(msg *nats.Msg) {
+// BuildError : sets a builds status to errored
+func BuildError(msg *nats.Msg) {
 	var m Message
 	var b models.Build
 
