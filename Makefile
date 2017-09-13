@@ -5,6 +5,7 @@ build:
 	go build -v ./...
 
 deps:
+	go get github.com/r3labs/akira
 	go get gopkg.in/r3labs/graph.v2
 	go get github.com/jinzhu/gorm
 	go get github.com/nats-io/nats

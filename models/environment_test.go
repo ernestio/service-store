@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const TESTSERVICEDB = "test_services"
+const TESTENVDB = "test_environments"
 
 // EnvironmentTestSuite : Test suite for migration
 type EnvironmentTestSuite struct {
@@ -24,12 +24,12 @@ type EnvironmentTestSuite struct {
 
 // SetupTest : sets up test suite
 func (suite *EnvironmentTestSuite) SetupTest() {
-	err := tests.CreateTestDB(TESTSERVICEDB)
+	err := tests.CreateTestDB(TESTENVDB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	DB, err = gorm.Open("postgres", "user=postgres dbname="+TESTSERVICEDB+" sslmode=disable")
+	DB, err = gorm.Open("postgres", "user=postgres dbname="+TESTENVDB+" sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,9 +41,8 @@ func (suite *EnvironmentTestSuite) SetupTest() {
 
 	for i := 1; i <= 10; i++ {
 		DB.Create(&Environment{
-			Name:         "Test" + strconv.Itoa(i),
-			DatacenterID: 1,
-			Status:       "in_progress",
+			Name:   "Test" + strconv.Itoa(i),
+			Status: "in_progress",
 			Options: map[string]interface{}{
 				"sync":          true,
 				"sync_type":     "hard",
@@ -59,17 +58,17 @@ func (suite *EnvironmentTestSuite) TestEnvironments() {
 }
 
 func (suite *EnvironmentTestSuite) testFindEnvironments() {
-	services := FindEnvironments(map[string]interface{}{
+	environments, err := FindEnvironments(map[string]interface{}{
 		"name":     "Test1",
 		"group_id": 1,
 	})
 
-	suite.Equal(len(services), 1)
-	suite.Equal(services[0].ID, uint(1))
-	suite.Equal(services[0].DatacenterID, uint(1))
-	suite.Equal(services[0].Name, "Test1")
-	suite.Equal(services[0].Status, "in_progress")
-	suite.Equal(services[0].Options["sync"], true)
+	suite.Nil(err)
+	suite.Equal(len(environments), 1)
+	suite.Equal(environments[0].ID, uint(1))
+	suite.Equal(environments[0].Name, "Test1")
+	suite.Equal(environments[0].Status, "in_progress")
+	suite.Equal(environments[0].Options["sync"], true)
 }
 
 // TestEnvironmentTestSuite : Test suite for migration

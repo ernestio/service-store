@@ -14,35 +14,34 @@ var EnvironmentQueryFields = []string{"ids", "names"}
 
 // Environment : the database mapped entity
 type Environment struct {
-	ID           uint       `json:"id" gorm:"primary_key"`
-	DatacenterID uint       `json:"datacenter_id"`
-	Name         string     `json:"name" gorm:"type:varchar(100);unique_index"`
-	Type         string     `json:"type"`
-	Status       string     `json:"status"`
-	Options      Map        `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
-	Credentials  Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	DeletedAt    *time.Time `json:"-" sql:"index"`
+	ID          uint       `json:"id" gorm:"primary_key"`
+	Name        string     `json:"name" gorm:"type:varchar(100);unique_index"`
+	Type        string     `json:"type"`
+	Status      string     `json:"status"`
+	Options     Map        `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Credentials Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"-" sql:"index"`
 }
 
-// TableName : set Entity's table name to be services
+// TableName : set Entity's table name to be environments
 func (e *Environment) TableName() string {
 	return "environments"
 }
 
-// FindEnvironments : finds a service
-func FindEnvironments(q map[string]interface{}) []Environment {
-	var services []Environment
-	query(q, EnvironmentFields, EnvironmentQueryFields).Find(&services)
-	return services
+// FindEnvironments : finds a environment
+func FindEnvironments(q map[string]interface{}) ([]Environment, error) {
+	var environments []Environment
+	err := query(q, EnvironmentFields, EnvironmentQueryFields).Find(&environments).Error
+	return environments, err
 }
 
 // GetEnvironment ....
 func GetEnvironment(q map[string]interface{}) (*Environment, error) {
-	var service Environment
-	err := query(q, EnvironmentFields, EnvironmentQueryFields).First(&service).Error
-	return &service, err
+	var environment Environment
+	err := query(q, EnvironmentFields, EnvironmentQueryFields).First(&environment).Error
+	return &environment, err
 }
 
 // Create ...
@@ -59,7 +58,12 @@ func (e *Environment) Update() error {
 		return err
 	}
 
-	stored.Options = e.Options
+	if e.Options != nil {
+		stored.Options = e.Options
+	}
+	if e.Credentials != nil {
+		stored.Credentials = e.Credentials
+	}
 
 	return DB.Save(&stored).Error
 }

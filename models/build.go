@@ -39,10 +39,14 @@ func (b *Build) TableName() string {
 }
 
 // FindBuilds : finds a build
-func FindBuilds(q map[string]interface{}) []Build {
+func FindBuilds(q map[string]interface{}) ([]Build, error) {
 	var builds []Build
-	query(q, BuildFields, []string{}).Find(&builds)
-	return builds
+	if q["id"] != nil {
+		q["uuid"] = q["id"]
+		delete(q, "id")
+	}
+	err := query(q, BuildFields, []string{}).Order("created_at desc").Find(&builds).Error
+	return builds, err
 }
 
 // GetBuild ...
@@ -53,15 +57,48 @@ func GetBuild(q map[string]interface{}) (*Build, error) {
 }
 
 // GetLatestBuild : gets the latest build of a environment
-func GetLatestBuild(environmentid uint) (*Build, error) {
+func GetLatestBuild(envID uint) (*Build, error) {
 	var build Build
-	q := map[string]interface{}{"environment_id": environmentid}
+	q := map[string]interface{}{"environment_id": envID}
 	err := query(q, BuildFields, []string{}).Order("created_at desc").First(&build).Error
 	return &build, err
 }
 
 // Create ...
 func (b *Build) Create() error {
+	var err error
+	var env *Environment
+
+	tx := DB.Begin()
+	tx.Exec("set transaction isolation level serializable")
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit().Error
+		default:
+			log.Println(err)
+			err = tx.Rollback().Error
+		}
+	}()
+
+	err = tx.Raw("SELECT * FROM environments WHERE id = ? for update", b.EnvironmentID).Scan(env).Error
+	if err != nil {
+		log.Println("could not update environment status")
+		return err
+	}
+
+	switch env.Status {
+	case "initializing", "done", "errored":
+		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", "in_progress", env.ID).Error
+	case "in_progress":
+		err = errors.New("could not create environment build: service in progress")
+	default:
+		err = errors.New("could not create environment build: unknown service state")
+	}
+
+	b.Status = "in_progress"
+
 	return DB.Create(b).Error
 }
 
