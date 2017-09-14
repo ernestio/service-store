@@ -9,6 +9,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/satori/uuid"
+
 	graph "gopkg.in/r3labs/graph.v2"
 )
 
@@ -52,6 +54,10 @@ func FindBuilds(q map[string]interface{}) ([]Build, error) {
 // GetBuild ...
 func GetBuild(q map[string]interface{}) (*Build, error) {
 	var build Build
+	if q["id"] != nil {
+		q["uuid"] = q["id"]
+		delete(q, "id")
+	}
 	err := query(q, BuildFields, []string{}).First(&build).Error
 	return &build, err
 }
@@ -67,7 +73,7 @@ func GetLatestBuild(envID uint) (*Build, error) {
 // Create ...
 func (b *Build) Create() error {
 	var err error
-	var env *Environment
+	var env Environment
 
 	tx := DB.Begin()
 	tx.Exec("set transaction isolation level serializable")
@@ -82,7 +88,7 @@ func (b *Build) Create() error {
 		}
 	}()
 
-	err = tx.Raw("SELECT * FROM environments WHERE id = ? for update", b.EnvironmentID).Scan(env).Error
+	err = tx.Raw("SELECT * FROM environments WHERE id = ? for update", b.EnvironmentID).Scan(&env).Error
 	if err != nil {
 		log.Println("could not update environment status")
 		return err
@@ -97,6 +103,7 @@ func (b *Build) Create() error {
 		err = errors.New("could not create environment build: unknown service state")
 	}
 
+	b.UUID = uuid.NewV4().String()
 	b.Status = "in_progress"
 
 	return DB.Create(b).Error
@@ -111,9 +118,15 @@ func (b *Build) Update() error {
 		return err
 	}
 
-	stored.Status = b.Status
-	stored.Definition = b.Definition
-	stored.Mapping = b.Mapping
+	if b.Status != "" {
+		stored.Status = b.Status
+	}
+	if b.Definition != "" {
+		stored.Definition = b.Definition
+	}
+	if b.Mapping != nil {
+		stored.Mapping = b.Mapping
+	}
 
 	return DB.Save(&stored).Error
 }

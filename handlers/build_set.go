@@ -24,7 +24,7 @@ func BuildSet(msg *nats.Msg) {
 		return
 	}
 
-	if build.ID == 0 {
+	if build.UUID == "" {
 		err = build.Create()
 	} else {
 		err = build.Update()

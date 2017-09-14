@@ -14,18 +14,13 @@ import (
 // BuildDelete : gets an build
 func BuildDelete(msg *nats.Msg) {
 	var err error
-	var build *models.Build
+	var build models.Build
 	var data []byte
 
 	defer response(msg.Reply, &data, &err)
 
-	err = json.Unmarshal(msg.Data, build)
+	err = json.Unmarshal(msg.Data, &build)
 	if err != nil {
-		return
-	}
-
-	if build.ID == 0 {
-		err = build.Create()
 		return
 	}
 

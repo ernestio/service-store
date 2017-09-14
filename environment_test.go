@@ -61,6 +61,7 @@ func TestEnvironmentFind(t *testing.T) {
 	}{
 		{"by-name", map[string]interface{}{"name": "Test2"}, 1},
 		{"by-status", map[string]interface{}{"status": "done"}, 20},
+		{"by-multiple-ids", map[string]interface{}{"ids": []int{1, 2, 3}}, 3},
 		{"nonexistent", map[string]interface{}{"name": "Test100"}, 0},
 	}
 
@@ -124,7 +125,8 @@ func TestEnvironmentDelete(t *testing.T) {
 		Event    *models.Environment
 		Expected string
 	}{
-		{"existing", &models.Environment{ID: uint(1)}, "success"},
+		{"by-id", &models.Environment{ID: uint(1)}, "success"},
+		{"by-name", &models.Environment{Name: "Test2"}, "success"},
 	}
 
 	setupTestSuite("test_environment_delete")

@@ -10,7 +10,7 @@ import "time"
 var EnvironmentFields = structFields(Environment{})
 
 // EnvironmentQueryFields ...
-var EnvironmentQueryFields = []string{"ids", "names"}
+var EnvironmentQueryFields = []string{"ids->id", "names->name"}
 
 // Environment : the database mapped entity
 type Environment struct {
@@ -70,7 +70,16 @@ func (e *Environment) Update() error {
 
 // Delete ...
 func (e *Environment) Delete() error {
-	err := DB.Unscoped().Where("environment_id = ?", e.ID).Delete(Build{}).Error
+	var err error
+
+	if e.ID == 0 {
+		err = DB.Where("name = ?", e.Name).First(e).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	err = DB.Unscoped().Where("environment_id = ?", e.ID).Delete(Build{}).Error
 	if err != nil {
 		return err
 	}

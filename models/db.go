@@ -7,6 +7,7 @@ package models
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 )
@@ -29,11 +30,22 @@ func structFields(x interface{}) []string {
 
 func supported(f string, fields []string) bool {
 	for _, field := range fields {
-		if f == field {
+		sf := strings.Split(field, "->")[0]
+		if f == sf {
 			return true
 		}
 	}
 	return false
+}
+
+func parse(f string, fields []string) string {
+	for _, field := range fields {
+		sf := strings.Split(field, "->")
+		if sf[0] == f {
+			return sf[1]
+		}
+	}
+	return ""
 }
 
 func query(q map[string]interface{}, fields, qfields []string) *gorm.DB {
@@ -47,7 +59,8 @@ func query(q map[string]interface{}, fields, qfields []string) *gorm.DB {
 		}
 
 		if supported(k, qfields) {
-			qs = fmt.Sprintf("%s in (?)", k)
+			sf := parse(k, qfields)
+			qs = fmt.Sprintf("%s in (?)", sf)
 		}
 
 		if qs != "" {

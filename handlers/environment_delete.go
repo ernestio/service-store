@@ -24,11 +24,6 @@ func EnvDelete(msg *nats.Msg) {
 		return
 	}
 
-	if env.ID == 0 {
-		err = env.Create()
-		return
-	}
-
 	err = env.Delete()
 	if err != nil {
 		return

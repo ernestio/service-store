@@ -10,6 +10,7 @@ deps:
 	go get github.com/jinzhu/gorm
 	go get github.com/nats-io/nats
 	go get github.com/lib/pq
+	go get github.com/nu7hatch/gouuid
 	go get github.com/ernestio/ernest-config-client
 
 dev-deps: deps
