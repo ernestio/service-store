@@ -6,10 +6,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/ernestio/service-store/models"
+	"github.com/r3labs/graph"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -145,4 +147,52 @@ func TestBuildDelete(t *testing.T) {
 			assert.Contains(t, string(resp.Data), tc.Expected)
 		})
 	}
+}
+
+func TestBuildSetInProgress(t *testing.T) {
+	setupTestSuite("test_build_set_in_progress")
+
+	db.Unscoped().Delete(models.Build{}, models.Build{})
+	CreateTestData(db, 20)
+
+	build := models.Build{EnvironmentID: uint(1)}
+	tb := models.Build{}
+
+	err := tb.SetStatus("uuid-1", "in_progress")
+	assert.Nil(t, err)
+
+	data, _ := json.Marshal(build)
+	resp, err := n.Request("build.set", data, time.Second)
+
+	assert.Nil(t, err)
+	assert.Contains(t, string(resp.Data), "error")
+	assert.Contains(t, string(resp.Data), "in progress")
+}
+
+func TestBuildSetTransaction(t *testing.T) {
+	setupTestSuite("test_build_transaction")
+
+	db.Unscoped().Delete(models.Build{}, models.Build{})
+	CreateTestData(db, 20)
+
+	go n.Publish("build.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"uuid-1", "_state": "completed"}`))
+	resp, err := n.Request("build.set.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"uuid-1", "_state": "completed"}`), time.Second)
+	fmt.Println(string(resp.Data))
+
+	time.Sleep(time.Second)
+	assert.Nil(t, err)
+
+	var b models.Build
+	db.Where("uuid = ?", "uuid-1").First(&b)
+
+	g := graph.New()
+	assert.Nil(t, g.Load(b.Mapping))
+
+	c1 := g.Component("network::test-1")
+	assert.NotNil(t, c1)
+	assert.Equal(t, "completed", c1.GetState())
+
+	c2 := g.Component("network::test-2")
+	assert.NotNil(t, c2)
+	assert.Equal(t, "completed", c2.GetState())
 }

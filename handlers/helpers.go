@@ -19,7 +19,10 @@ type Message struct {
 }
 
 func response(reply string, data *[]byte, err *error) {
-	rdata := *data
+	var rdata []byte
+	if data != nil {
+		rdata = *data
+	}
 
 	if *err != nil {
 		rdata, _ = json.Marshal(Error{Error: (*err).Error()})

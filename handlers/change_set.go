@@ -16,14 +16,14 @@ import (
 func BuildSetChange(msg *nats.Msg) {
 	var err error
 	var b models.Build
-	var c *graph.GenericComponent
+	var c graph.GenericComponent
 
 	defer response(msg.Reply, nil, &err)
 
-	err = json.Unmarshal(msg.Data, c)
+	err = json.Unmarshal(msg.Data, &c)
 	if err != nil {
 		return
 	}
 
-	err = b.SetChange(c)
+	err = b.SetChange(&c)
 }

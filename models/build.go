@@ -103,6 +103,10 @@ func (b *Build) Create() error {
 		err = errors.New("could not create environment build: unknown service state")
 	}
 
+	if err != nil {
+		return err
+	}
+
 	b.UUID = uuid.NewV4().String()
 	b.Status = "in_progress"
 
