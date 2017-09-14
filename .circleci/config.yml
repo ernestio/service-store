@@ -25,7 +25,9 @@ jobs:
            command: |
              make dev-deps
              docker run --name nats -d -p 4222:4222 nats
-             echo "CREATE DATABASE environments;" | psql -U postgres
+             docker run --name postgres -d -p 5432:5432 postgres:9.6.5-alpine
+             sudo apt update && sudo apt install postgresql-client
+             echo "CREATE DATABASE environments;" | psql -U postgres -h 127.0.0.1
        - run: 
            name: Install Service
            command: make install
@@ -38,7 +40,7 @@ jobs:
        - run: 
            name: Integration Tests
            command: |
-             docker stop nats
+             docker stop nats postgres
              git clone -b f-circleci-v2-680 git@github.com:ernestio/toolset.git /tmp/toolset/
              cd /tmp/toolset/ernestci/ && bundle install
              ruby /tmp/toolset/ernestci/run.rb $CIRCLE_WORKING_DIRECTORY/.ernest-ci
