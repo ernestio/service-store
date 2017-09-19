@@ -45,7 +45,6 @@ func startHandler() {
 	if _, err := n.QueueSubscribe("build.find", "environment-store", handlers.BuildFind); err != nil {
 		log.Panic(err)
 	}
-
 	if _, err := n.QueueSubscribe("build.get.mapping", "environment-store", handlers.BuildGetMapping); err != nil {
 		log.Panic(err)
 	}
