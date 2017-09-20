@@ -24,8 +24,9 @@ type GraphTransform func(g *graph.Graph, c *graph.GenericComponent) error
 type Build struct {
 	ID            uint       `json:"-" gorm:"primary_key"`
 	UUID          string     `json:"id"`
-	EnvironmentID uint       `json:"environment_id" gorm:"ForeignKey:UserRefer"`
+	EnvironmentID uint       `json:"environment_id" gorm:"ForeignKey:ID"`
 	UserID        uint       `json:"user_id"`
+	Username      string     `json:"user_name"`
 	Type          string     `json:"type"`
 	Status        string     `json:"status"`
 	Definition    string     `json:"definition" gorm:"type:text;"`

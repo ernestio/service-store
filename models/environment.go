@@ -62,6 +62,7 @@ func (e *Environment) Update() error {
 	if e.Options != nil {
 		stored.Options = e.Options
 	}
+
 	if e.Credentials != nil {
 		stored.Credentials = e.Credentials
 	}
