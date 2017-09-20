@@ -19,7 +19,7 @@ type Environment struct {
 	Name        string     `json:"name" gorm:"type:varchar(100);unique_index"`
 	Type        string     `json:"type"`
 	Status      string     `json:"status"`
-	Options     Map        `json:"option" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Options     Map        `json:"options" gorm:"type: jsonb not null default '{}'::jsonb"`
 	Credentials Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
