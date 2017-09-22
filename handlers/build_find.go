@@ -20,6 +20,10 @@ func BuildFind(msg *nats.Msg) {
 
 	defer response(msg.Reply, &data, &err)
 
+	if len(msg.Data) < 1 {
+		msg.Data = []byte(`{}`)
+	}
+
 	err = json.Unmarshal(msg.Data, &q)
 	if err != nil {
 		return
