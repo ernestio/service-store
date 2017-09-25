@@ -9,8 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/satori/uuid"
-
 	graph "gopkg.in/r3labs/graph.v2"
 )
 
@@ -108,7 +106,6 @@ func (b *Build) Create() error {
 		return err
 	}
 
-	b.UUID = uuid.NewV4().String()
 	b.Status = "in_progress"
 
 	return DB.Create(b).Error

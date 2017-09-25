@@ -24,7 +24,8 @@ func BuildSet(msg *nats.Msg) {
 		return
 	}
 
-	if build.UUID == "" {
+	_, err = models.GetBuild(map[string]interface{}{"uuid": build.UUID})
+	if err != nil {
 		err = build.Create()
 	} else {
 		err = build.Update()
