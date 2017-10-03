@@ -34,5 +34,10 @@ func BuildFind(msg *nats.Msg) {
 		return
 	}
 
+	for i := range builds {
+		builds[i].Mapping = nil
+		builds[i].Definition = ""
+	}
+
 	data, err = json.Marshal(builds)
 }

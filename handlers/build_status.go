@@ -16,7 +16,8 @@ func SetBuildStatus(msg *nats.Msg) {
 	var err error
 	var data []byte
 	var e *models.Environment
-	var b, cb *models.Build
+	var b models.Build
+	var cb *models.Build
 	var bs struct {
 		ID     string `json:"id"`
 		Name   string `json:"name"`

@@ -27,8 +27,8 @@ type Build struct {
 	Username      string     `json:"user_name"`
 	Type          string     `json:"type"`
 	Status        string     `json:"status"`
-	Definition    string     `json:"definition" gorm:"type:text;"`
-	Mapping       Map        `json:"mapping" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Definition    string     `json:"definition,omitempty" gorm:"type:text;"`
+	Mapping       Map        `json:"mapping,omitempty" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	DeletedAt     *time.Time `json:"-" sql:"index"`

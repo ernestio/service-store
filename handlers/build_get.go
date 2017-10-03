@@ -30,5 +30,8 @@ func BuildGet(msg *nats.Msg) {
 		return
 	}
 
+	build.Mapping = nil
+	build.Definition = ""
+
 	data, err = json.Marshal(build)
 }
