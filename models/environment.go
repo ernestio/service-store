@@ -4,7 +4,12 @@
 
 package models
 
-import "time"
+import (
+	"os"
+	"time"
+
+	aes "github.com/ernestio/crypto/aes"
+)
 
 // EnvironmentFields ...
 var EnvironmentFields = structFields(Environment{})
@@ -47,6 +52,13 @@ func GetEnvironment(q map[string]interface{}) (*Environment, error) {
 
 // Create ...
 func (e *Environment) Create() error {
+	ec, err := encryptCredentials(e.Credentials)
+	if err != nil {
+		return err
+	}
+
+	e.Credentials = ec
+
 	return DB.Create(e).Error
 }
 
@@ -64,7 +76,12 @@ func (e *Environment) Update() error {
 	}
 
 	if e.Credentials != nil {
-		stored.Credentials = e.Credentials
+		ec, err := encryptCredentials(e.Credentials)
+		if err != nil {
+			return err
+		}
+
+		stored.Credentials = ec
 	}
 
 	return DB.Save(&stored).Error
@@ -87,4 +104,40 @@ func (e *Environment) Delete() error {
 	}
 
 	return DB.Unscoped().Delete(e).Error
+}
+
+func crypt(s string) (string, error) {
+	crypto := aes.New()
+	key := os.Getenv("ERNEST_CRYPTO_KEY")
+	if s != "" {
+		encrypted, err := crypto.Encrypt(s, key)
+		if err != nil {
+			return "", err
+		}
+		s = encrypted
+	}
+
+	return s, nil
+}
+
+func encryptCredentials(c Map) (Map, error) {
+	for k, v := range c {
+		if k == "region" || k == "external_network" || k == "username" || k == "vcloud_url" {
+			continue
+		}
+
+		xc, ok := v.(string)
+		if !ok {
+			continue
+		}
+
+		x, err := crypt(xc)
+		if err != nil {
+			return c, err
+		}
+
+		c[k] = x
+	}
+
+	return c, nil
 }
