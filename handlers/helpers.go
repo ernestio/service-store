@@ -8,7 +8,7 @@ import "encoding/json"
 
 // Error : default error message
 type Error struct {
-	Error string `json:"error"`
+	Error string `json:"_error"`
 }
 
 // Message ...
