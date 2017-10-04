@@ -39,7 +39,7 @@ func (e *Environment) TableName() string {
 // FindEnvironments : finds a environment
 func FindEnvironments(q map[string]interface{}) ([]Environment, error) {
 	var environments []Environment
-	err := query(q, EnvironmentFields, EnvironmentQueryFields).Find(&environments).Error
+	err := query(q, EnvironmentFields, EnvironmentQueryFields).Order("updated_at desc").Find(&environments).Error
 	return environments, err
 }
 
