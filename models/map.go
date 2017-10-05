@@ -57,6 +57,7 @@ func (m *Map) LoadGraph(g *graph.Graph) {
 	mx := make(Map)
 
 	mx["id"] = g.ID
+	mx["name"] = g.Name
 	mx["action"] = g.Action
 	mx["options"] = g.Options
 	mx["components"] = g.Components

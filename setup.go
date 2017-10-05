@@ -8,6 +8,7 @@ import (
 	"os"
 
 	ecc "github.com/ernestio/ernest-config-client"
+	"github.com/ernestio/service-store/handlers"
 	"github.com/ernestio/service-store/models"
 )
 
@@ -16,6 +17,7 @@ var c *ecc.Config
 func setupNats() {
 	c = ecc.NewConfig(os.Getenv("NATS_URI"))
 	n = c.Nats()
+	handlers.NC = n
 }
 
 func setupPg(dbname string) {

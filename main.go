@@ -8,69 +8,71 @@ import (
 	"log"
 	"runtime"
 
+	"github.com/ernestio/service-store/handlers"
 	"github.com/jinzhu/gorm"
-	"github.com/nats-io/nats"
-	"github.com/r3labs/natsdb"
-
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/r3labs/akira"
 )
 
-var n *nats.Conn
+var n akira.Connector
 var db *gorm.DB
 
-var handler natsdb.Handler
-
 func startHandler() {
-	handler = natsdb.Handler{
-		NotFoundErrorMessage:   natsdb.NotFound.Encoded(),
-		UnexpectedErrorMessage: natsdb.Unexpected.Encoded(),
-		DeletedMessage:         []byte(`{"status":"deleted"}`),
-		Nats:                   n,
-		NewModel: func() natsdb.Model {
-			return &ServiceView{}
-		},
+	// Environments
+	if _, err := n.QueueSubscribe("environment.get", "environment-store", handlers.EnvGet); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.QueueSubscribe("environment.del", "environment-store", handlers.EnvDelete); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.QueueSubscribe("environment.set", "environment-store", handlers.EnvSet); err != nil {
+		log.Panic(err)
+	}
+	if _, err := n.QueueSubscribe("environment.find", "environment-store", handlers.EnvFind); err != nil {
+		log.Panic(err)
 	}
 
-	if _, err := n.QueueSubscribe("service.get", "service-store", handler.Get); err != nil {
+	// Builds
+	if _, err := n.QueueSubscribe("build.get", "environment-store", handlers.BuildGet); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.del", "service-store", handler.Del); err != nil {
+	if _, err := n.QueueSubscribe("build.del", "environment-store", handlers.BuildDelete); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.set", "service-store", handler.Set); err != nil {
+	if _, err := n.QueueSubscribe("build.set", "environment-store", handlers.BuildSet); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.find", "service-store", handler.Find); err != nil {
+	if _, err := n.QueueSubscribe("build.find", "environment-store", handlers.BuildFind); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.get.mapping", "service-store", GetMapping); err != nil {
+	if _, err := n.QueueSubscribe("build.get.mapping", "environment-store", handlers.BuildGetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.set.mapping", "service-store", SetMapping); err != nil {
+	if _, err := n.QueueSubscribe("build.set.mapping", "environment-store", handlers.BuildSetMapping); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.set.mapping.component", "service-store", SetComponent); err != nil {
+	if _, err := n.QueueSubscribe("build.set.mapping.component", "environment-store", handlers.BuildSetComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.del.mapping.component", "service-store", DeleteComponent); err != nil {
+	if _, err := n.QueueSubscribe("build.del.mapping.component", "environment-store", handlers.BuildDeleteComponent); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.set.mapping.change", "service-store", SetChange); err != nil {
+	if _, err := n.QueueSubscribe("build.set.mapping.change", "environment-store", handlers.BuildSetChange); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.get.definition", "service-store", GetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("build.get.definition", "environment-store", handlers.BuildGetDefinition); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.set.definition", "service-store", SetDefinition); err != nil {
+	if _, err := n.QueueSubscribe("build.set.definition", "environment-store", handlers.BuildSetDefinition); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.*.done", "service-store", ServiceComplete); err != nil {
+	if _, err := n.QueueSubscribe("build.*.done", "environment-store", handlers.BuildComplete); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("service.*.error", "service-store", ServiceError); err != nil {
+	if _, err := n.QueueSubscribe("build.*.error", "environment-store", handlers.BuildError); err != nil {
 		log.Panic(err)
 	}
-	if _, err := n.QueueSubscribe("build.set.status", "service-store", SetBuildStatus); err != nil {
+	if _, err := n.QueueSubscribe("build.set.status", "environment-store", handlers.SetBuildStatus); err != nil {
 		log.Panic(err)
 	}
 }

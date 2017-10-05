@@ -56,10 +56,11 @@ func (suite *BuildTestSuite) TestBuilds() {
 }
 
 func (suite *BuildTestSuite) testFindBuilds() {
-	builds := FindBuilds(map[string]interface{}{
+	builds, err := FindBuilds(map[string]interface{}{
 		"user_id": 1,
 	})
 
+	suite.Nil(err)
 	suite.Equal(len(builds), 1)
 	suite.Equal(builds[0].ID, uint(1))
 	suite.Equal(builds[0].UserID, uint(1))

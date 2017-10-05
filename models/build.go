@@ -22,12 +22,13 @@ type GraphTransform func(g *graph.Graph, c *graph.GenericComponent) error
 type Build struct {
 	ID            uint       `json:"-" gorm:"primary_key"`
 	UUID          string     `json:"id"`
-	EnvironmentID uint       `json:"environment_id" gorm:"ForeignKey:UserRefer"`
+	EnvironmentID uint       `json:"environment_id" gorm:"ForeignKey:ID"`
 	UserID        uint       `json:"user_id"`
+	Username      string     `json:"user_name"`
 	Type          string     `json:"type"`
 	Status        string     `json:"status"`
-	Definition    string     `json:"definition" gorm:"type:text;"`
-	Mapping       Map        `json:"mapping" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Definition    string     `json:"definition,omitempty" gorm:"type:text;"`
+	Mapping       Map        `json:"mapping,omitempty" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	DeletedAt     *time.Time `json:"-" sql:"index"`
@@ -39,29 +40,74 @@ func (b *Build) TableName() string {
 }
 
 // FindBuilds : finds a build
-func FindBuilds(q map[string]interface{}) []Build {
+func FindBuilds(q map[string]interface{}) ([]Build, error) {
 	var builds []Build
-	query(q, BuildFields, []string{}).Find(&builds)
-	return builds
+	if q["id"] != nil {
+		q["uuid"] = q["id"]
+		delete(q, "id")
+	}
+	err := query(q, BuildFields, []string{}).Order("created_at desc").Find(&builds).Error
+	return builds, err
 }
 
 // GetBuild ...
 func GetBuild(q map[string]interface{}) (*Build, error) {
 	var build Build
+	if q["id"] != nil {
+		q["uuid"] = q["id"]
+		delete(q, "id")
+	}
 	err := query(q, BuildFields, []string{}).First(&build).Error
 	return &build, err
 }
 
 // GetLatestBuild : gets the latest build of a environment
-func GetLatestBuild(environmentid uint) (*Build, error) {
+func GetLatestBuild(envID uint) (*Build, error) {
 	var build Build
-	q := map[string]interface{}{"environment_id": environmentid}
+	q := map[string]interface{}{"environment_id": envID}
 	err := query(q, BuildFields, []string{}).Order("created_at desc").First(&build).Error
 	return &build, err
 }
 
 // Create ...
 func (b *Build) Create() error {
+	var err error
+	var env Environment
+
+	tx := DB.Begin()
+	tx.Exec("set transaction isolation level serializable")
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit().Error
+		default:
+			log.Println(err)
+			err = tx.Rollback().Error
+		}
+	}()
+
+	err = tx.Raw("SELECT * FROM environments WHERE id = ? for update", b.EnvironmentID).Scan(&env).Error
+	if err != nil {
+		log.Println("could not update environment status")
+		return err
+	}
+
+	switch env.Status {
+	case "initializing", "done", "errored":
+		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", "in_progress", env.ID).Error
+	case "in_progress":
+		err = errors.New("could not create environment build: service in progress")
+	default:
+		err = errors.New("could not create environment build: unknown service state")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	b.Status = "in_progress"
+
 	return DB.Create(b).Error
 }
 
@@ -74,9 +120,15 @@ func (b *Build) Update() error {
 		return err
 	}
 
-	stored.Status = b.Status
-	stored.Definition = b.Definition
-	stored.Mapping = b.Mapping
+	if b.Status != "" {
+		stored.Status = b.Status
+	}
+	if b.Definition != "" {
+		stored.Definition = b.Definition
+	}
+	if b.Mapping != nil {
+		stored.Mapping = b.Mapping
+	}
 
 	return DB.Save(&stored).Error
 }
