@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	graph "gopkg.in/r3labs/graph.v2"
+	"github.com/r3labs/graph"
 )
 
 // Map : holds a map[string]interface{} value that can be loaded/serialized to a JSONB field

@@ -6,14 +6,14 @@ build:
 
 deps:
 	go get github.com/r3labs/akira
-	go get gopkg.in/r3labs/graph.v2
+	go get github.com/r3labs/graph
 	go get github.com/satori/uuid
 	go get github.com/jinzhu/gorm
 	go get github.com/nats-io/nats
 	go get github.com/lib/pq
 	go get github.com/ernestio/ernest-config-client
 	go get github.com/ernestio/crypto/aes
-	
+
 dev-deps: deps
 	go get github.com/stretchr/testify/suite
 	go get github.com/alecthomas/gometalinter

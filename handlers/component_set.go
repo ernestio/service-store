@@ -9,7 +9,7 @@ import (
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
-	graph "gopkg.in/r3labs/graph.v2"
+	"github.com/r3labs/graph"
 )
 
 // BuildSetComponent : Mapping component setter
