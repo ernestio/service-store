@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -222,9 +221,11 @@ func TestBuildSetTransaction(t *testing.T) {
 	db.Unscoped().Delete(models.Build{}, models.Build{})
 	CreateTestData(db, 20)
 
-	go n.Publish("build.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"uuid-1", "_state": "completed"}`))
-	resp, err := n.Request("build.set.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"uuid-1", "_state": "completed"}`), time.Second)
-	fmt.Println(string(resp.Data))
+	go func() {
+		_ = n.Publish("build.set.mapping.component", []byte(`{"_component_id":"network::test-1", "service":"uuid-1", "_state": "completed"}`))
+	}()
+
+	_, err := n.Request("build.set.mapping.component", []byte(`{"_component_id":"network::test-2", "service":"uuid-1", "_state": "completed"}`), time.Second)
 
 	time.Sleep(time.Second)
 	assert.Nil(t, err)

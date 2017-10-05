@@ -75,8 +75,8 @@ func setupTestSuite(database string) {
 	c = &ecc.Config{}
 	c.SetConnector(n)
 
-	n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
-		n.Publish(msg.Reply, []byte(`{"names":["services"],"password":"","url":"postgres://postgres@127.0.0.1","user":""}`))
+	_, _ = n.Subscribe("config.get.postgres", func(msg *nats.Msg) {
+		_ = n.Publish(msg.Reply, []byte(`{"names":["services"],"password":"","url":"postgres://postgres@127.0.0.1","user":""}`))
 	})
 
 	_ = tests.CreateTestDB(database)
