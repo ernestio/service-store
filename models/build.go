@@ -93,9 +93,20 @@ func (b *Build) Create() error {
 		return err
 	}
 
+	switch b.Type {
+	case "apply":
+		b.Status = "in_progress"
+	case "sync-import":
+		b.Status = "syncing"
+	case "sync-resolve":
+		b.Status = "done"
+	default:
+		b.Status = "in_progress"
+	}
+
 	switch env.Status {
 	case "initializing", "done", "errored":
-		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", "in_progress", env.ID).Error
+		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
 	case "in_progress":
 		err = errors.New("could not create environment build: service in progress")
 	default:
@@ -105,8 +116,6 @@ func (b *Build) Create() error {
 	if err != nil {
 		return err
 	}
-
-	b.Status = "in_progress"
 
 	return DB.Create(b).Error
 }
