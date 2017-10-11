@@ -72,6 +72,7 @@ func GetLatestBuild(envID uint) (*Build, error) {
 // Create ...
 func (b *Build) Create() error {
 	var err error
+	var pb *Build
 	var env Environment
 
 	tx := DB.Begin()
@@ -96,16 +97,34 @@ func (b *Build) Create() error {
 	switch b.Type {
 	case "apply":
 		b.Status = "in_progress"
+	case "sync-restore":
+		b.Status = "awaiting_input"
 	case "sync-import":
 		b.Status = "syncing"
 	case "sync-resolve":
 		b.Status = "done"
-	default:
-		b.Status = "in_progress"
+	}
+
+	// update previous sync build
+	if env.Status == "syncing" {
+		if b.Type != "sync-restore" || b.Type != "sync-resolve" {
+			return errors.New("could not create environment build: environment is syncing")
+		}
+
+		pb, err = GetLatestBuild(env.ID)
+		if err != nil {
+			return err
+		}
+
+		pb.Status = "done"
+		err = pb.Update()
+		if err != nil {
+			return err
+		}
 	}
 
 	switch env.Status {
-	case "initializing", "done", "errored":
+	case "initializing", "done", "errored", "syncing":
 		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
 	case "in_progress":
 		err = errors.New("could not create environment build: service in progress")
