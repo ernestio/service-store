@@ -58,6 +58,8 @@ func (m *Map) LoadGraph(g *graph.Graph) {
 
 	mx["id"] = g.ID
 	mx["name"] = g.Name
+	mx["user_id"] = g.UserID
+	mx["username"] = g.Username
 	mx["action"] = g.Action
 	mx["options"] = g.Options
 	mx["components"] = g.Components
