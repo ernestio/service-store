@@ -95,31 +95,30 @@ func (b *Build) Create() error {
 	}
 
 	switch b.Type {
-	case "apply":
-		b.Status = "in_progress"
-	case "sync-restore":
-		b.Status = "awaiting_input"
-	case "sync-import":
+	case "sync":
 		b.Status = "syncing"
-	case "sync-resolve":
+	case "apply", "sync-rejected":
+		b.Status = "in_progress"
+	case "sync-accepted", "sync-ignored":
 		b.Status = "done"
 	}
 
 	// update previous sync build
 	if env.Status == "syncing" {
-		if b.Type != "sync-restore" || b.Type != "sync-resolve" {
+		switch b.Type {
+		case "sync-accepted", "sync-ignored", "sync-rejected":
+			pb, err = GetLatestBuild(env.ID)
+			if err != nil {
+				return err
+			}
+
+			pb.Status = "done"
+			err = pb.Update()
+			if err != nil {
+				return err
+			}
+		default:
 			return errors.New("could not create environment build: environment is syncing")
-		}
-
-		pb, err = GetLatestBuild(env.ID)
-		if err != nil {
-			return err
-		}
-
-		pb.Status = "done"
-		err = pb.Update()
-		if err != nil {
-			return err
 		}
 	}
 
