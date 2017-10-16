@@ -105,7 +105,7 @@ func (b *Build) Create() error {
 	switch env.Status {
 	case "initializing", "done", "errored":
 		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
-	case "syncing":
+	case "awaiting_resolution":
 		switch b.Type {
 		case "sync-accepted", "sync-ignored", "sync-rejected":
 			err = SetLatestBuildStatus(env.ID, "done")
@@ -114,8 +114,9 @@ func (b *Build) Create() error {
 			}
 			err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
 		default:
-			return errors.New("could not create environment build: environment is syncing")
 		}
+	case "syncing":
+		return errors.New("could not create environment build: environment is syncing")
 	case "in_progress":
 		err = errors.New("could not create environment build: service in progress")
 	default:
