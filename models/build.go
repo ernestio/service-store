@@ -93,9 +93,30 @@ func (b *Build) Create() error {
 		return err
 	}
 
+	switch b.Type {
+	case "sync":
+		b.Status = "syncing"
+	case "apply", "sync-rejected":
+		b.Status = "in_progress"
+	case "sync-accepted", "sync-ignored":
+		b.Status = "done"
+	}
+
 	switch env.Status {
 	case "initializing", "done", "errored":
-		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", "in_progress", env.ID).Error
+		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
+	case "awaiting_resolution":
+		switch b.Type {
+		case "sync-accepted", "sync-ignored", "sync-rejected":
+			err = SetLatestBuildStatus(env.ID, "done")
+			if err != nil {
+				return err
+			}
+			err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
+		default:
+		}
+	case "syncing":
+		return errors.New("could not create environment build: environment is syncing")
 	case "in_progress":
 		err = errors.New("could not create environment build: service in progress")
 	default:
@@ -105,8 +126,6 @@ func (b *Build) Create() error {
 	if err != nil {
 		return err
 	}
-
-	b.Status = "in_progress"
 
 	return DB.Create(b).Error
 }
@@ -169,6 +188,17 @@ func (b *Build) SetStatus(id string, status string) error {
 	err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", status, b.EnvironmentID).Error
 
 	return err
+}
+
+func SetLatestBuildStatus(envID uint, status string) error {
+	pb, err := GetLatestBuild(envID)
+	if err != nil {
+		return err
+	}
+
+	pb.Status = status
+
+	return pb.Update()
 }
 
 // SetComponent : creates or updates a component
