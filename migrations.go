@@ -5,6 +5,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ernestio/service-store/models"
 	"github.com/jinzhu/gorm"
 )
@@ -15,9 +17,11 @@ var DepreciatedColumns = []string{"options", "sync", "sync_type", "sync_interval
 // Migrate existing database schemas to new setup
 func Migrate(db *gorm.DB) error {
 	// var builds []models.Build
-
 	if db.HasTable(models.Environment{}) {
-		db.Raw("ALTER TABLE environments RENAME COLUMN datacenter_id TO project_id;")
+		err := db.Exec("ALTER TABLE environments RENAME COLUMN datacenter_id TO project_id;").Error
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	return db.AutoMigrate(models.Environment{}, models.Build{}).Error
