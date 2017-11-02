@@ -14,12 +14,12 @@ import (
 // StatePayload : stores informmation about the current triggered event
 type StatePayload struct {
 	EnvironmentID uint
+	Action        string
 	tx            *gorm.DB
 }
 
 var (
-	BaseEvents    = []string{"initializing", "done", "errored"}
-	SpecialEvents = []string{"sync-accepted", "sync-ignored", "sync-rejected", "submission-accepted", "submission-rejected"}
+	BaseStates = []string{"initializing", "done", "errored"}
 )
 
 // NewStateMachine ...
@@ -39,32 +39,29 @@ func NewStateMachine(e *Environment) *statemachine.StateMachine {
 	sm.Error("syncing", errors.New("could not create environment build: environment is syncing"))
 	sm.Error("in_progress", errors.New("could not create environment build: build in progress"))
 
-	for _, e := range SpecialEvents {
-		sm.On(e, CallbackLastBuildStatus)
-	}
-
-	for _, e := range append(BaseEvents, SpecialEvents...) {
-		sm.On(e, CallbackEnvironmentStatus)
+	for _, e := range BaseStates {
+		sm.On(e, CallbackUpdateStatus)
 	}
 
 	return sm
 }
 
-// CallbackLastBuildStatus : sets the last build status
-func CallbackLastBuildStatus(state string, p interface{}) error {
+// CallbackUpdateStatus : sets the environments status
+func CallbackUpdateStatus(state string, p interface{}) error {
+	var err error
+
 	sp, ok := p.(*StatePayload)
 	if !ok {
 		return errors.New("unknown state payload")
 	}
 
-	return SetLatestBuildStatus(sp.EnvironmentID, "done")
-}
+	switch sp.Action {
+	case "sync-accepted", "sync-ignored", "sync-rejected":
+		err = SetLatestBuildStatus(sp.EnvironmentID, "done")
+	}
 
-// CallbackEnvironmentStatus : sets the environments status
-func CallbackEnvironmentStatus(state string, p interface{}) error {
-	sp, ok := p.(*StatePayload)
-	if !ok {
-		return errors.New("unknown state payload")
+	if err != nil {
+		return err
 	}
 
 	return sp.tx.Exec("UPDATE environments SET status = ? WHERE id = ?", state, sp.EnvironmentID).Error
