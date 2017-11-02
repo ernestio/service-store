@@ -36,7 +36,7 @@ func NewStateMachine(e *Environment) *statemachine.StateMachine {
 	sm.When("submission-rejected", statemachine.Transitions{"awaiting_approval": "done"})
 
 	sm.Error("syncing", errors.New("could not create environment build: environment is syncing"))
-	sm.Error("in_progress", errors.New("could not create environment build: environment in progress"))
+	sm.Error("in_progress", errors.New("could not create environment build: build in progress"))
 
 	for _, e := range SpecialEvents {
 		sm.On(e, CallbackLastBuildStatus)
