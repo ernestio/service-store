@@ -27,6 +27,7 @@ func NewStateMachine(e *Environment) *statemachine.StateMachine {
 	sm := statemachine.New(e)
 
 	sm.When("apply", statemachine.Transitions{"initializing": "in_progress", "done": "in_progress", "errored": "in_progress"})
+	sm.When("destroy", statemachine.Transitions{"initializing": "in_progress", "done": "in_progress", "errored": "in_progress"})
 	sm.When("sync", statemachine.Transitions{"initializing": "syncing", "done": "syncing", "errored": "syncing"})
 	sm.When("submission", statemachine.Transitions{"initializing": "awaiting_approval", "done": "awaiting_approval", "errored": "awaiting_approval"})
 	sm.When("sync-rejected", statemachine.Transitions{"awaiting_resolution": "in_progress"})
