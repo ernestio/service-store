@@ -59,7 +59,7 @@ func CallbackUpdateStatus(state string, p interface{}) error {
 	}
 
 	switch sp.Action {
-	case "sync-accepted", "sync-ignored", "sync-rejected":
+	case "sync-accepted", "sync-ignored", "sync-rejected", "submission-accepted", "submission-rejected":
 		err = SetLatestBuildStatus(sp.EnvironmentID, "done")
 	}
 
