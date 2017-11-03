@@ -95,6 +95,7 @@ func (b *Build) Create() error {
 
 	p := StatePayload{
 		EnvironmentID: env.ID,
+		Action:        b.Type,
 		tx:            tx,
 	}
 
