@@ -19,7 +19,7 @@ type StatePayload struct {
 }
 
 var (
-	BaseStates = []string{"initializing", "done", "errored"}
+	BaseStates = []string{"initializing", "done", "errored", "in_progress", "awaiting_approval", "awaiting_resolution"}
 )
 
 // NewStateMachine ...
