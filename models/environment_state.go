@@ -39,6 +39,8 @@ func NewStateMachine(e *Environment) *statemachine.StateMachine {
 
 	sm.Error("syncing", errors.New("could not create environment build: environment is syncing"))
 	sm.Error("in_progress", errors.New("could not create environment build: build in progress"))
+	sm.Error("awaiting_approval", errors.New("could not create environment build: a build is waiting for approval"))
+	sm.Error("awaiting_resolution", errors.New("could not create environment build: a sync needs to be resolved"))
 
 	for _, e := range BaseStates {
 		sm.On(e, CallbackUpdateStatus)
