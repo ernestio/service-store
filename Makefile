@@ -5,14 +5,8 @@ build:
 	go build -v ./...
 
 deps:
-	go get github.com/r3labs/akira
-	go get github.com/r3labs/graph
-	go get github.com/satori/uuid
-	go get github.com/jinzhu/gorm
-	go get github.com/nats-io/nats
-	go get github.com/lib/pq
-	go get github.com/ernestio/ernest-config-client
-	go get github.com/ernestio/crypto/aes
+	go get -u github.com/golang/dep/cmd/dep
+	dep ensure
 
 dev-deps: deps
 	go get github.com/stretchr/testify/suite
