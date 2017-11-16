@@ -94,7 +94,7 @@ func TestBuildSet(t *testing.T) {
 		Expected *models.Build
 	}{
 		{"existing", &models.Build{UUID: "uuid-1", EnvironmentID: uint(1), Status: "done"}, &models.Build{UUID: "uuid-1", Status: "done"}},
-		{"nonexistent", &models.Build{EnvironmentID: uint(2), Status: "in_progress"}, &models.Build{UUID: "GENERATED", Status: "in_progress"}},
+		{"nonexistent", &models.Build{EnvironmentID: uint(2), Type: "apply"}, &models.Build{UUID: "GENERATED", Type: "apply", Status: "in_progress"}},
 	}
 
 	setupTestSuite("test_build_set")
@@ -118,6 +118,7 @@ func TestBuildSet(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.Expected.UUID, e.UUID)
 			}
+			assert.Equal(t, tc.Expected.Type, e.Type)
 			assert.Equal(t, tc.Expected.Status, e.Status)
 		})
 	}
@@ -199,7 +200,7 @@ func TestBuildSetInProgress(t *testing.T) {
 	db.Unscoped().Delete(models.Build{}, models.Build{})
 	CreateTestData(db, 20)
 
-	build := models.Build{EnvironmentID: uint(1)}
+	build := models.Build{EnvironmentID: uint(1), Type: "apply"}
 	tb := models.Build{}
 
 	err := tb.SetStatus("uuid-1", "in_progress")

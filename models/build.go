@@ -93,39 +93,20 @@ func (b *Build) Create() error {
 		return err
 	}
 
-	switch b.Type {
-	case "sync":
-		b.Status = "syncing"
-	case "apply", "sync-rejected":
-		b.Status = "in_progress"
-	case "sync-accepted", "sync-ignored":
-		b.Status = "done"
+	p := StatePayload{
+		EnvironmentID: env.ID,
+		Action:        b.Type,
+		tx:            tx,
 	}
 
-	switch env.Status {
-	case "initializing", "done", "errored":
-		err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
-	case "awaiting_resolution":
-		switch b.Type {
-		case "sync-accepted", "sync-ignored", "sync-rejected":
-			err = SetLatestBuildStatus(env.ID, "done")
-			if err != nil {
-				return err
-			}
-			err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", b.Status, env.ID).Error
-		default:
-		}
-	case "syncing":
-		return errors.New("could not create environment build: environment is syncing")
-	case "in_progress":
-		err = errors.New("could not create environment build: service in progress")
-	default:
-		err = errors.New("could not create environment build: unknown service state")
-	}
-
+	// State machine handles state transition and committing on a successful state change
+	sm := NewStateMachine(&env)
+	err = sm.Trigger(b.Type, &p)
 	if err != nil {
 		return err
 	}
+
+	b.Status = env.Status
 
 	return DB.Create(b).Error
 }

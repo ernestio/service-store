@@ -106,6 +106,16 @@ func (e *Environment) Delete() error {
 	return DB.Unscoped().Delete(e).Error
 }
 
+// GetState ...
+func (e *Environment) GetState() string {
+	return e.Status
+}
+
+// SetState ...
+func (e *Environment) SetState(state string) {
+	e.Status = state
+}
+
 func crypt(s string) (string, error) {
 	crypto := aes.New()
 	key := os.Getenv("ERNEST_CRYPTO_KEY")

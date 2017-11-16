@@ -39,6 +39,7 @@ func CreateTestData(db *gorm.DB, count int) {
 			EnvironmentID: uint(i),
 			UserID:        uint(i),
 			Status:        "done",
+			Type:          "apply",
 			Mapping: map[string]interface{}{
 				"id":     "uuid-" + strconv.Itoa(i),
 				"action": "service.create",
