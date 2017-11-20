@@ -144,3 +144,50 @@ func TestEnvironmentDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestScheduleSet(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Event    []byte
+		Expected string
+	}{
+		{"existing_env", []byte(`{"id": "rnd", "name":"Test1"}`), "success"},
+		{"unexisting_env", []byte(`{"id": "rnd", "name":"Unexisting"}`), "error"},
+	}
+
+	setupTestSuite("test_environment_set_schedule")
+
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
+	CreateTestData(db, 20)
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			resp, err := n.Request("environment.set.schedule", tc.Event, time.Second)
+			assert.Nil(t, err)
+			assert.Contains(t, string(resp.Data), tc.Expected)
+		})
+	}
+}
+func TestScheduleUnset(t *testing.T) {
+	cases := []struct {
+		Name     string
+		Event    []byte
+		Expected string
+	}{
+		{"existing_env", []byte(`{"id": "rnd", "name":"Test1"}`), "success"},
+		{"unexisting_env", []byte(`{"id": "rnd", "name":"Unexisting"}`), "error"},
+	}
+
+	setupTestSuite("test_environment_unset_schedule")
+
+	db.Unscoped().Delete(models.Environment{}, models.Build{})
+	CreateTestData(db, 20)
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			resp, err := n.Request("environment.set.schedule", tc.Event, time.Second)
+			assert.Nil(t, err)
+			assert.Contains(t, string(resp.Data), tc.Expected)
+		})
+	}
+}

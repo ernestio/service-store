@@ -4,7 +4,10 @@
 
 package handlers
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"log"
+)
 
 // Error : default error message
 type Error struct {
@@ -30,5 +33,11 @@ func response(reply string, data *[]byte, err *error) {
 
 	if reply != "" {
 		NC.Publish(reply, rdata)
+	}
+}
+
+func pub(subject string, data []byte) {
+	if err := NC.Publish(subject, data); err != nil {
+		log.Println("[ERROR] : " + err.Error())
 	}
 }

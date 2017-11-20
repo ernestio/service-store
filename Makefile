@@ -14,7 +14,7 @@ dev-deps: deps
 	gometalinter --install
 
 test:
-	go test -v ./...
+	go test --cover -v $(go list ./... | grep -v /vendor/)
 
 lint:
 	gometalinter --config .linter.conf
