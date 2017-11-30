@@ -6,7 +6,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
@@ -27,15 +27,14 @@ func SetSchedule(msg *nats.Msg) {
 	}
 
 	if _, ok := req["id"]; !ok {
-		resp = []byte(`{"status": "error"}`)
-		log.Println("[ ERROR ] a valid id must be provided")
+		err = errors.New("a valid id must be provided")
 		return
 	}
 
 	q := map[string]interface{}{"name": req["name"]}
 	env, err = models.GetEnvironment(q)
 	if err != nil {
-		log.Println("[ ERROR ] retrieving environment info when setting a schedule")
+		err = errors.New("retrieving environment info when setting a schedule")
 		return
 	}
 
