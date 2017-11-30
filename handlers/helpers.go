@@ -28,7 +28,7 @@ func response(reply string, data *[]byte, err *error) {
 	}
 
 	if *err != nil {
-		log.Println("[ ERROR ]" + (*err).Error())
+		log.Println("[ ERROR ] " + (*err).Error())
 		rdata, _ = json.Marshal(Error{Error: (*err).Error()})
 	}
 
