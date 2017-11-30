@@ -11,6 +11,7 @@ import (
 	"github.com/ernestio/service-store/handlers"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/nats-io/nats"
 	"github.com/r3labs/akira"
 )
 
@@ -18,62 +19,35 @@ var n akira.Connector
 var db *gorm.DB
 
 func startHandler() {
-	// Environments
-	if _, err := n.QueueSubscribe("environment.get", "environment-store", handlers.EnvGet); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("environment.del", "environment-store", handlers.EnvDelete); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("environment.set", "environment-store", handlers.EnvSet); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("environment.find", "environment-store", handlers.EnvFind); err != nil {
-		log.Panic(err)
+	subscribers := map[string]interface{}{
+		"environment.get":             map[string]nats.MsgHandler{"environment-store": handlers.EnvGet},
+		"environment.del":             map[string]nats.MsgHandler{"environment-store": handlers.EnvDelete},
+		"environment.set":             map[string]nats.MsgHandler{"environment-store": handlers.EnvSet},
+		"environment.find":            map[string]nats.MsgHandler{"environment-store": handlers.EnvFind},
+		"environment.set.schedule":    map[string]nats.MsgHandler{"environment-store": handlers.SetSchedule},
+		"environment.del.schedule":    map[string]nats.MsgHandler{"environment-store": handlers.UnsetSchedule},
+		"build.get":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildGet},
+		"build.del":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildDelete},
+		"build.set":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildSet},
+		"build.find":                  map[string]nats.MsgHandler{"environment-store": handlers.BuildFind},
+		"build.get.mapping":           map[string]nats.MsgHandler{"environment-store": handlers.BuildGetMapping},
+		"build.set.mapping":           map[string]nats.MsgHandler{"environment-store": handlers.BuildSetMapping},
+		"build.set.mapping.component": map[string]nats.MsgHandler{"environment-store": handlers.BuildSetComponent},
+		"build.del.mapping.component": map[string]nats.MsgHandler{"environment-store": handlers.BuildDeleteComponent},
+		"build.set.mapping.change":    map[string]nats.MsgHandler{"environment-store": handlers.BuildSetChange},
+		"build.get.definition":        map[string]nats.MsgHandler{"environment-store": handlers.BuildGetDefinition},
+		"build.set.definition":        map[string]nats.MsgHandler{"environment-store": handlers.BuildSetDefinition},
+		"build.*.done":                map[string]nats.MsgHandler{"environment-store": handlers.BuildComplete},
+		"build.*.error":               map[string]nats.MsgHandler{"environment-store": handlers.BuildError},
+		"build.set.status":            map[string]nats.MsgHandler{"environment-store": handlers.SetBuildStatus},
 	}
 
-	// Builds
-	if _, err := n.QueueSubscribe("build.get", "environment-store", handlers.BuildGet); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.del", "environment-store", handlers.BuildDelete); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set", "environment-store", handlers.BuildSet); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.find", "environment-store", handlers.BuildFind); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.get.mapping", "environment-store", handlers.BuildGetMapping); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set.mapping", "environment-store", handlers.BuildSetMapping); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set.mapping.component", "environment-store", handlers.BuildSetComponent); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.del.mapping.component", "environment-store", handlers.BuildDeleteComponent); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set.mapping.change", "environment-store", handlers.BuildSetChange); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.get.definition", "environment-store", handlers.BuildGetDefinition); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set.definition", "environment-store", handlers.BuildSetDefinition); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.*.done", "environment-store", handlers.BuildComplete); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.*.error", "environment-store", handlers.BuildError); err != nil {
-		log.Panic(err)
-	}
-	if _, err := n.QueueSubscribe("build.set.status", "environment-store", handlers.SetBuildStatus); err != nil {
-		log.Panic(err)
+	for endpoint, v := range subscribers {
+		for store, handler := range v.(map[string]nats.MsgHandler) {
+			if _, err := n.QueueSubscribe(endpoint, store, handler); err != nil {
+				log.Panic(err)
+			}
+		}
 	}
 }
 
