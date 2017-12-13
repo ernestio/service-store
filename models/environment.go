@@ -6,6 +6,7 @@ package models
 
 import (
 	"os"
+	"reflect"
 	"time"
 
 	aes "github.com/ernestio/crypto/aes"
@@ -25,6 +26,7 @@ type Environment struct {
 	Type        string     `json:"type"`
 	Status      string     `json:"status"`
 	Options     Map        `json:"options" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Schedules   Map        `json:"schedules" gorm:"type: jsonb not null default '{}'::jsonb"`
 	Credentials Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
@@ -62,6 +64,19 @@ func (e *Environment) Create() error {
 	return DB.Create(e).Error
 }
 
+// HasChangedSchedules : checks if environment schedules have changed against
+// stored ones
+func (e *Environment) HasChangedSchedules() bool {
+	var stored Environment
+
+	err := DB.Where("id = ?", e.ID).First(&stored).Error
+	if err != nil {
+		return false
+	}
+
+	return !reflect.DeepEqual(stored.Schedules, e.Schedules)
+}
+
 // Update ...
 func (e *Environment) Update() error {
 	var stored Environment
@@ -74,6 +89,8 @@ func (e *Environment) Update() error {
 	if e.Options != nil {
 		stored.Options = e.Options
 	}
+
+	stored.Schedules = e.Schedules
 
 	if e.Credentials != nil {
 		ec, err := encryptCredentials(e.Credentials)
@@ -114,6 +131,25 @@ func (e *Environment) GetState() string {
 // SetState ...
 func (e *Environment) SetState(state string) {
 	e.Status = state
+}
+
+// GetSchedule : Gets a schedule by name
+func (e *Environment) GetSchedule(name string) interface{} {
+	val, ok := e.Schedules[name]
+	if !ok {
+		return nil
+	}
+	return val
+}
+
+// SetSchedule : Gets a schedule by name
+func (e *Environment) SetSchedule(name string, data map[string]interface{}) {
+	e.Schedules[name] = data
+}
+
+// UnsetSchedule : Gets a schedule by name
+func (e *Environment) UnsetSchedule(name string) {
+	delete(e.Schedules, name)
 }
 
 func crypt(s string) (string, error) {

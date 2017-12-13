@@ -28,6 +28,9 @@ func EnvSet(msg *nats.Msg) {
 		env.Status = "initializing"
 		err = env.Create()
 	} else {
+		if env.HasChangedSchedules() {
+			defer pub("environment.set.schedules", msg.Data)
+		}
 		err = env.Update()
 	}
 
