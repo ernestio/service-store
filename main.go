@@ -5,7 +5,6 @@
 package main
 
 import (
-	"log"
 	"runtime"
 
 	"github.com/ernestio/service-store/handlers"
@@ -19,36 +18,35 @@ var n akira.Connector
 var db *gorm.DB
 
 func startHandler() {
-	subscribers := map[string]interface{}{
-		"environment.get":             map[string]nats.MsgHandler{"environment-store": handlers.EnvGet},
-		"environment.del":             map[string]nats.MsgHandler{"environment-store": handlers.EnvDelete},
-		"environment.set":             map[string]nats.MsgHandler{"environment-store": handlers.EnvSet},
-		"environment.find":            map[string]nats.MsgHandler{"environment-store": handlers.EnvFind},
-		"environment.set.schedule":    map[string]nats.MsgHandler{"environment-store": handlers.SetSchedule},
-		"environment.del.schedule":    map[string]nats.MsgHandler{"environment-store": handlers.UnsetSchedule},
-		"build.get":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildGet},
-		"build.del":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildDelete},
-		"build.set":                   map[string]nats.MsgHandler{"environment-store": handlers.BuildSet},
-		"build.find":                  map[string]nats.MsgHandler{"environment-store": handlers.BuildFind},
-		"build.get.mapping":           map[string]nats.MsgHandler{"environment-store": handlers.BuildGetMapping},
-		"build.set.mapping":           map[string]nats.MsgHandler{"environment-store": handlers.BuildSetMapping},
-		"build.set.mapping.component": map[string]nats.MsgHandler{"environment-store": handlers.BuildSetComponent},
-		"build.del.mapping.component": map[string]nats.MsgHandler{"environment-store": handlers.BuildDeleteComponent},
-		"build.set.mapping.change":    map[string]nats.MsgHandler{"environment-store": handlers.BuildSetChange},
-		"build.get.definition":        map[string]nats.MsgHandler{"environment-store": handlers.BuildGetDefinition},
-		"build.set.definition":        map[string]nats.MsgHandler{"environment-store": handlers.BuildSetDefinition},
-		"build.*.done":                map[string]nats.MsgHandler{"environment-store": handlers.BuildComplete},
-		"build.*.error":               map[string]nats.MsgHandler{"environment-store": handlers.BuildError},
-		"build.set.status":            map[string]nats.MsgHandler{"environment-store": handlers.SetBuildStatus},
+	subscribers := map[string]nats.MsgHandler{
+		"environment.get":             handlers.EnvGet,
+		"environment.del":             handlers.EnvDelete,
+		"environment.set":             handlers.EnvSet,
+		"environment.find":            handlers.EnvFind,
+		"environment.set.schedule":    handlers.SetSchedule,
+		"environment.del.schedule":    handlers.UnsetSchedule,
+		"build.get":                   handlers.BuildGet,
+		"build.del":                   handlers.BuildDelete,
+		"build.set":                   handlers.BuildSet,
+		"build.find":                  handlers.BuildFind,
+		"build.get.mapping":           handlers.BuildGetMapping,
+		"build.set.mapping":           handlers.BuildSetMapping,
+		"build.set.mapping.component": handlers.BuildSetComponent,
+		"build.del.mapping.component": handlers.BuildDeleteComponent,
+		"build.set.mapping.change":    handlers.BuildSetChange,
+		"build.get.definition":        handlers.BuildGetDefinition,
+		"build.set.definition":        handlers.BuildSetDefinition,
+		"build.*.done":                handlers.BuildComplete,
+		"build.*.error":               handlers.BuildError,
+		"build.set.status":            handlers.SetBuildStatus,
 	}
 
-	for endpoint, v := range subscribers {
-		for store, handler := range v.(map[string]nats.MsgHandler) {
-			if _, err := n.QueueSubscribe(endpoint, store, handler); err != nil {
-				log.Panic(err)
-			}
+	n.Subscribe(">", func(msg *nats.Msg) {
+		handler, ok := subscribers[msg.Subject]
+		if ok {
+			handler(msg)
 		}
-	}
+	})
 }
 
 func main() {

@@ -71,7 +71,7 @@
   branch = "master"
   name = "github.com/r3labs/akira"
   packages = ["."]
-  revision = "3b9b806a55de1ce90d9ab71e11464865860857fe"
+  revision = "a3fae57dfd96d0ff20e64aa618f09a73ffea6ec4"
 
 [[projects]]
   branch = "master"
