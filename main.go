@@ -5,6 +5,7 @@
 package main
 
 import (
+	"log"
 	"runtime"
 
 	"github.com/ernestio/service-store/handlers"
@@ -41,12 +42,16 @@ func startHandler() {
 		"build.set.status":            handlers.SetBuildStatus,
 	}
 
-	n.Subscribe(">", func(msg *nats.Msg) {
+	_, err := n.Subscribe(">", func(msg *nats.Msg) {
 		handler, ok := subscribers[msg.Subject]
 		if ok {
 			handler(msg)
 		}
 	})
+
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func main() {
