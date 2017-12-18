@@ -13,10 +13,21 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/nats-io/nats"
 	"github.com/r3labs/akira"
+	"github.com/r3labs/pattern"
 )
 
 var n akira.Connector
 var db *gorm.DB
+
+func subscriber(subs map[string]nats.MsgHandler, event string) *nats.MsgHandler {
+	for k, v := range subs {
+		if pattern.Match(event, k) {
+			return &v
+		}
+	}
+
+	return nil
+}
 
 func startHandler() {
 	subscribers := map[string]nats.MsgHandler{
@@ -43,9 +54,9 @@ func startHandler() {
 	}
 
 	_, err := n.Subscribe(">", func(msg *nats.Msg) {
-		handler, ok := subscribers[msg.Subject]
-		if ok {
-			handler(msg)
+		handler := subscriber(subscribers, msg.Subject)
+		if handler != nil {
+			(*handler)(msg)
 		}
 	})
 

@@ -81,6 +81,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/r3labs/pattern"
+  packages = ["."]
+  revision = "d05362a6d27dc9fd78b02b3fb3242edb9967c0d7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/r3labs/statemachine"
   packages = ["."]
   revision = "1dbd089360e76412648b2ae45c77d39017bdd9d2"
@@ -112,6 +118,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "36e8f9fb589d4a6ac1d1bf526d24f80314ad0420314a42b625fbda5382fde0eb"
+  inputs-digest = "851d93c4cc6272c0c3324b033f5a1618b990b13df66b1eacee2fabd7383bc715"
   solver-name = "gps-cdcl"
   solver-version = 1
