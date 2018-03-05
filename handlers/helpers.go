@@ -19,6 +19,7 @@ type Message struct {
 	ID         string                 `json:"id"`
 	Definition string                 `json:"definition"`
 	Mapping    map[string]interface{} `json:"mapping"`
+	Validation map[string]interface{} `json:"validation"`
 }
 
 func response(reply string, data *[]byte, err *error) {
