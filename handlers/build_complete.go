@@ -41,5 +41,7 @@ func BuildComplete(msg *nats.Msg) {
 		if err != nil {
 			log.Println("could not get delete the service: " + err.Error())
 		}
+
+		DetatchPolicies(e.Name)
 	}
 }
