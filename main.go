@@ -41,6 +41,8 @@ func startHandler() {
 		"build.del":                   handlers.BuildDelete,
 		"build.set":                   handlers.BuildSet,
 		"build.find":                  handlers.BuildFind,
+		"build.get.validation":        handlers.BuildGetValidation,
+		"build.set.validation":        handlers.BuildSetValidation,
 		"build.get.mapping":           handlers.BuildGetMapping,
 		"build.set.mapping":           handlers.BuildSetMapping,
 		"build.set.mapping.component": handlers.BuildSetComponent,
