@@ -130,6 +130,9 @@ func (b *Build) Update() error {
 	if b.Mapping != nil {
 		stored.Mapping = b.Mapping
 	}
+	if b.Validation != nil {
+		stored.Validation = b.Validation
+	}
 
 	return DB.Save(&stored).Error
 }
