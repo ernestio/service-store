@@ -29,5 +29,7 @@ func EnvDelete(msg *nats.Msg) {
 		return
 	}
 
+	DetatchPolicies(env.Name)
+
 	data = []byte(`{"status": "success"}`)
 }
