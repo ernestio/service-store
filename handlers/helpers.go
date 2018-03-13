@@ -66,16 +66,22 @@ func DetatchPolicies(env string) {
 	}
 
 	for i := 0; i < len(p); i++ {
+		var matched bool
+
 		if p[i]["environments"] == nil {
 			continue
 		}
 
-		envs := p[i]["environments"].([]string)
-
+		envs := p[i]["environments"].([]interface{})
 		for x := len(envs) - 1; x >= 0; x-- {
-			if envs[i] == env {
+			if envs[x] == env {
+				matched = true
 				envs = append(envs[:x], envs[x+1:]...)
 			}
+		}
+
+		if !matched {
+			continue
 		}
 
 		p[i]["environments"] = envs
