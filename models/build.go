@@ -170,7 +170,7 @@ func (b *Build) SetStatus(id string, status string) error {
 		return err
 	}
 
-	err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", status, b.EnvironmentID).Error
+	err = tx.Exec("UPDATE environments SET status = ?,updated_at=now() WHERE id = ?", status, b.EnvironmentID).Error
 
 	return err
 }
