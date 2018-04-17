@@ -6,30 +6,35 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/ernestio/service-store/models"
 	"github.com/nats-io/nats"
 )
 
-// EnvDelete : gets an environment
-func EnvDelete(msg *nats.Msg) {
+// BuildGetValidation : validation result field getter
+func BuildGetValidation(msg *nats.Msg) {
 	var err error
-	var env models.Environment
 	var data []byte
+	var m Message
+	var b *models.Build
 
 	defer response(msg.Reply, &data, &err)
 
-	err = json.Unmarshal(msg.Data, &env)
+	err = json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return
 	}
 
-	err = env.Delete()
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		return
 	}
 
-	DetatchPolicies(env.Name)
+	if b == nil {
+		err = errors.New("build not found")
+		return
+	}
 
-	data = []byte(`{"status": "success"}`)
+	data, err = json.Marshal(b.Validation)
 }

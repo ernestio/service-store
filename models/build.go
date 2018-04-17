@@ -29,6 +29,7 @@ type Build struct {
 	Status        string     `json:"status"`
 	Definition    string     `json:"definition,omitempty" gorm:"type:text;"`
 	Mapping       Map        `json:"mapping,omitempty" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Validation    Map        `json:"validation,omitempty" gorm:"type: jsonb not null default '{}'::jsonb"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	DeletedAt     *time.Time `json:"-" sql:"index"`
@@ -129,6 +130,9 @@ func (b *Build) Update() error {
 	if b.Mapping != nil {
 		stored.Mapping = b.Mapping
 	}
+	if b.Validation != nil {
+		stored.Validation = b.Validation
+	}
 
 	return DB.Save(&stored).Error
 }
@@ -166,7 +170,7 @@ func (b *Build) SetStatus(id string, status string) error {
 		return err
 	}
 
-	err = tx.Exec("UPDATE environments SET status = ? WHERE id = ?", status, b.EnvironmentID).Error
+	err = tx.Exec("UPDATE environments SET status = ?,updated_at=now() WHERE id = ?", status, b.EnvironmentID).Error
 
 	return err
 }

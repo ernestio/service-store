@@ -11,25 +11,25 @@ import (
 	"github.com/nats-io/nats"
 )
 
-// EnvDelete : gets an environment
-func EnvDelete(msg *nats.Msg) {
+// BuildSetValidation : Validation field setter
+func BuildSetValidation(msg *nats.Msg) {
 	var err error
-	var env models.Environment
-	var data []byte
+	var m *Message
+	var b *models.Build
 
-	defer response(msg.Reply, &data, &err)
+	defer response(msg.Reply, nil, &err)
 
-	err = json.Unmarshal(msg.Data, &env)
+	err = json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return
 	}
 
-	err = env.Delete()
+	b, err = models.GetBuild(map[string]interface{}{"uuid": m.ID})
 	if err != nil {
 		return
 	}
 
-	DetatchPolicies(env.Name)
+	b.Validation = m.Validation
 
-	data = []byte(`{"status": "success"}`)
+	err = b.Update()
 }
