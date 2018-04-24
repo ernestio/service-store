@@ -59,16 +59,8 @@ func GetEnvironment(q map[string]interface{}) (*Environment, error) {
 	}
 
 	err = query(
-		map[string]interface{}{"environment_id": environment.ID},
-		[]string{"uuid",
-			"environment_id",
-			"user_id",
-			"user_name",
-			"type",
-			"status",
-			"created_at",
-			"updated_at",
-		}, []string{}).
+		map[string]interface{}{"environment_id": environment.ID}, BuildFields, []string{}).
+		Select(BuildMinimalFields).
 		Order("created_at desc").
 		Find(&environment.Builds).
 		Error

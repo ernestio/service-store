@@ -20,7 +20,7 @@ var BuildMinimalFields = []string{
 	"uuid",
 	"environment_id",
 	"user_id",
-	"user_name",
+	"username",
 	"type",
 	"status",
 	"created_at",
