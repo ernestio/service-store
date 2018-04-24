@@ -19,6 +19,7 @@ type StatePayload struct {
 }
 
 var (
+	// BaseStates : base environment states
 	BaseStates = []string{"initializing", "done", "errored", "in_progress", "awaiting_approval", "awaiting_resolution"}
 )
 
