@@ -28,6 +28,7 @@ type Environment struct {
 	Options     Map        `json:"options" gorm:"type: jsonb not null default '{}'::jsonb"`
 	Schedules   Map        `json:"schedules" gorm:"type: jsonb not null default '{}'::jsonb"`
 	Credentials Map        `json:"credentials" gorm:"type: jsonb not null default '{}'::jsonb"`
+	Builds      []Build    `json:"builds" sql:"-"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	DeletedAt   *time.Time `json:"-" sql:"index"`
@@ -48,7 +49,26 @@ func FindEnvironments(q map[string]interface{}) ([]Environment, error) {
 // GetEnvironment ....
 func GetEnvironment(q map[string]interface{}) (*Environment, error) {
 	var environment Environment
-	err := query(q, EnvironmentFields, EnvironmentQueryFields).First(&environment).Error
+
+	err := query(q, EnvironmentFields, EnvironmentQueryFields).
+		First(&environment).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = query(
+		map[string]interface{}{"environment_id": environment.ID}, BuildFields, []string{}).
+		Select(BuildMinimalFields).
+		Order("created_at desc").
+		Find(&environment.Builds).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &environment, err
 }
 

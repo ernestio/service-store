@@ -15,6 +15,18 @@ import (
 // BuildFields ...
 var BuildFields = append([]string{"uuid"}, structFields(Build{})...)
 
+// BuildMinimalFields ...
+var BuildMinimalFields = []string{
+	"uuid",
+	"environment_id",
+	"user_id",
+	"username",
+	"type",
+	"status",
+	"created_at",
+	"updated_at",
+}
+
 // GraphTransform : a function that can transform parts of a graph
 type GraphTransform func(g *graph.Graph, c *graph.GenericComponent) error
 
@@ -175,6 +187,7 @@ func (b *Build) SetStatus(id string, status string) error {
 	return err
 }
 
+// SetLatestBuildStatus : sets the latest build's status
 func SetLatestBuildStatus(envID uint, status string) error {
 	pb, err := GetLatestBuild(envID)
 	if err != nil {
