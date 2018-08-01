@@ -7,6 +7,7 @@ package handlers
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +22,11 @@ type Message struct {
 	Definition string                 `json:"definition"`
 	Mapping    map[string]interface{} `json:"mapping"`
 	Validation map[string]interface{} `json:"validation"`
+}
+
+// Role represents a user role.
+type Role struct {
+	ID int `json:"id"`
 }
 
 func response(reply string, data *[]byte, err *error) {
@@ -42,6 +48,31 @@ func response(reply string, data *[]byte, err *error) {
 func pub(subject string, data []byte) {
 	if err := NC.Publish(subject, data); err != nil {
 		log.Println("[ERROR] : " + err.Error())
+	}
+}
+
+// DeleteRoles deletes all roles associated with the given environment name.
+func DeleteRoles(env string) {
+	var roles []Role
+
+	resp, err := NC.Request("authorization.find", []byte(`{"resource_type":"environment", "resource_id":"`+env+`"}`), time.Second*5)
+	if err != nil {
+		log.Println("[ERROR] : " + err.Error())
+		return
+	}
+
+	err = json.Unmarshal(resp.Data, &roles)
+	if err != nil {
+		log.Println("[ERROR] : " + err.Error())
+		return
+	}
+
+	for _, role := range roles {
+		_, err := NC.Request("authorization.del", []byte(`{"id":`+strconv.Itoa(role.ID)+`}`), time.Second*5)
+		if err != nil {
+			log.Println("[ERROR] : " + err.Error())
+			return
+		}
 	}
 }
 
