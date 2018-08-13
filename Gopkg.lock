@@ -2,122 +2,194 @@
 
 
 [[projects]]
+  digest = "1:56c130d885a4aacae1dd9c7b71cfe39912c7ebc1ff7d2b46083c8812996dc43b"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = ""
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:d49d297c292766d6603a9aaa15be3cae4a39e084a69bb7d665fe0d5b5270ac31"
   name = "github.com/ernestio/crypto"
   packages = ["aes"]
+  pruneopts = ""
   revision = "fa0fc393bc2487562c72fbbfa8a08862b39a6c0a"
 
 [[projects]]
   branch = "master"
+  digest = "1:6078f921de2a68b6afbc31dfa1684d600966f4c332063e8daef61758b6a6094e"
   name = "github.com/ernestio/ernest-config-client"
   packages = ["."]
-  revision = "d767474ae0ea944ec7ee6b35d2204d2439ee0fae"
+  pruneopts = ""
+  revision = "9588aab91bdf53d2fa430f9505b33457d3fcb3bc"
 
 [[projects]]
+  digest = "1:d5c1692d62c22b9ff5248d1c5f3850d06f7bc850f9ae6eec15c6601f774eef4f"
   name = "github.com/jinzhu/gorm"
-  packages = [".","dialects/postgres"]
+  packages = [
+    ".",
+    "dialects/postgres",
+  ]
+  pruneopts = ""
   revision = "5174cc5c242a728b435ea2be8a2f7f998e15429b"
   version = "v1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:a0c0f06f12f4b83b89eec79114265c54e9e300b8ddda0f0f3fb49a685283fa6c"
   name = "github.com/jinzhu/inflection"
   packages = ["."]
+  pruneopts = ""
   revision = "1c35d901db3da928c72a72d8458480cc9ade058f"
 
 [[projects]]
   branch = "master"
+  digest = "1:c7bbf42b56f999fc18f12707f6f9a3f47171de8bc6d4d7d3e8449093d55a4629"
   name = "github.com/lib/pq"
-  packages = [".","hstore","oid"]
+  packages = [
+    ".",
+    "hstore",
+    "oid",
+  ]
+  pruneopts = ""
   revision = "b609790bd85edf8e9ab7e0f8912750a786177bcf"
 
 [[projects]]
   branch = "master"
+  digest = "1:30a2adc78c422ebd23aac9cfece529954d5eacf9ddbe37345f2a17439f8fa849"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
+  pruneopts = ""
   revision = "06020f85339e21b2478f756a78e295255ffa4d6a"
 
 [[projects]]
+  digest = "1:36bb8d98af879e2a7747ef28a4c8fc456c470675dce0ff95e97e413b22244299"
   name = "github.com/nats-io/go-nats"
-  packages = ["encoders/builtin","util"]
+  packages = [
+    ".",
+    "encoders/builtin",
+    "util",
+  ]
+  pruneopts = ""
   revision = "29f9728a183bf3fa7e809e14edac00b33be72088"
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:36bb8d98af879e2a7747ef28a4c8fc456c470675dce0ff95e97e413b22244299"
   name = "github.com/nats-io/nats"
   packages = ["."]
+  pruneopts = ""
   revision = "29f9728a183bf3fa7e809e14edac00b33be72088"
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:be61e8224b84064109eaba8157cbb4bbe6ca12443e182b6624fdfa1c0dcf53d9"
   name = "github.com/nats-io/nuid"
   packages = ["."]
+  pruneopts = ""
   revision = "289cccf02c178dc782430d534e3c1f5b72af807f"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:640c6d8dedf622b70ae82cded8d820dc8b9613aef2bc8a9a7802ad65c8e7a770"
   name = "github.com/r3labs/akira"
   packages = ["."]
+  pruneopts = ""
   revision = "a3fae57dfd96d0ff20e64aa618f09a73ffea6ec4"
 
 [[projects]]
   branch = "master"
+  digest = "1:d1c541fc15158785a6cd9ef44fec683d7d34151d5d2a7788675be5efc8ea3872"
   name = "github.com/r3labs/graph"
   packages = ["."]
+  pruneopts = ""
   revision = "9deb28413bae427ad31cf14986095f51ff726226"
 
 [[projects]]
   branch = "master"
+  digest = "1:685760f6f6ea72781e6a4fdb8730970808fd917c94e61e18739d425036d8bfd3"
   name = "github.com/r3labs/pattern"
   packages = ["."]
+  pruneopts = ""
   revision = "d05362a6d27dc9fd78b02b3fb3242edb9967c0d7"
 
 [[projects]]
   branch = "master"
+  digest = "1:b883fbca8d70feaeab9ec722d0bedb221e12aab675d7556c32614da4f66683db"
   name = "github.com/r3labs/statemachine"
   packages = ["."]
+  pruneopts = ""
   revision = "1dbd089360e76412648b2ae45c77d39017bdd9d2"
 
 [[projects]]
+  digest = "1:3926a4ec9a4ff1a072458451aa2d9b98acd059a45b38f7335d31e06c3d6a0159"
   name = "github.com/stretchr/testify"
-  packages = ["assert","require","suite"]
+  packages = [
+    "assert",
+    "require",
+    "suite",
+  ]
+  pruneopts = ""
   revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
   version = "v1.1.4"
 
 [[projects]]
   branch = "master"
+  digest = "1:a992f0c68fa56538ede286e9e3827341fab57b7532552a771f47a32db0e6117b"
   name = "golang.org/x/crypto"
   packages = ["pbkdf2"]
+  pruneopts = ""
   revision = "bd6f299fb381e4c3393d1c4b1f0b94f5e77650c8"
 
 [[projects]]
   branch = "v1"
+  digest = "1:105ec809d993ab248d801e6daef5634115218dec8f77bcbc55f07a97d655ddad"
   name = "gopkg.in/bsm/ratelimit.v1"
   packages = ["."]
+  pruneopts = ""
   revision = "db14e161995a5177acef654cb0dd785e8ee8bc22"
 
 [[projects]]
+  digest = "1:6651284988a9d46d55a68413bdf9850558ee440642449d269f16dbc32a2d3b88"
   name = "gopkg.in/redis.v3"
-  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool"]
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+  ]
+  pruneopts = ""
   revision = "b5e368500d0a508ef8f16e9c2d4025a8a46bcc29"
   version = "v3.6.4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "851d93c4cc6272c0c3324b033f5a1618b990b13df66b1eacee2fabd7383bc715"
+  input-imports = [
+    "github.com/ernestio/crypto/aes",
+    "github.com/ernestio/ernest-config-client",
+    "github.com/jinzhu/gorm",
+    "github.com/jinzhu/gorm/dialects/postgres",
+    "github.com/lib/pq",
+    "github.com/nats-io/nats",
+    "github.com/r3labs/akira",
+    "github.com/r3labs/graph",
+    "github.com/r3labs/pattern",
+    "github.com/r3labs/statemachine",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/suite",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
