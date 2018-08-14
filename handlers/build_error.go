@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"github.com/ernestio/service-store/models"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 // BuildError : sets a builds status to errored

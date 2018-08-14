@@ -77,14 +77,6 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:36bb8d98af879e2a7747ef28a4c8fc456c470675dce0ff95e97e413b22244299"
-  name = "github.com/nats-io/nats"
-  packages = ["."]
-  pruneopts = ""
-  revision = "29f9728a183bf3fa7e809e14edac00b33be72088"
-  version = "v1.3.0"
-
-[[projects]]
   digest = "1:be61e8224b84064109eaba8157cbb4bbe6ca12443e182b6624fdfa1c0dcf53d9"
   name = "github.com/nats-io/nuid"
   packages = ["."]
@@ -102,11 +94,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:640c6d8dedf622b70ae82cded8d820dc8b9613aef2bc8a9a7802ad65c8e7a770"
+  digest = "1:c21600df12e3d20bfbbf7457d244d6c6d9690ca88ec64f6412977995c06cdda5"
   name = "github.com/r3labs/akira"
   packages = ["."]
   pruneopts = ""
-  revision = "a3fae57dfd96d0ff20e64aa618f09a73ffea6ec4"
+  revision = "8754167cb7b314671eb1e2abf2e9465f2e3d5ad4"
 
 [[projects]]
   branch = "master"
@@ -183,7 +175,7 @@
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/lib/pq",
-    "github.com/nats-io/nats",
+    "github.com/nats-io/go-nats",
     "github.com/r3labs/akira",
     "github.com/r3labs/graph",
     "github.com/r3labs/pattern",
