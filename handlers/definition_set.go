@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/ernestio/service-store/models"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 // BuildSetDefinition : Definition field setter

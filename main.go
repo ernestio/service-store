@@ -11,7 +11,7 @@ import (
 	"github.com/ernestio/service-store/handlers"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 	"github.com/r3labs/akira"
 	"github.com/r3labs/pattern"
 )

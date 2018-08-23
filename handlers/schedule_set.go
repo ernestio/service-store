@@ -9,7 +9,7 @@ import (
 	"errors"
 
 	"github.com/ernestio/service-store/models"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 // SetSchedule : sets the a schedule for a specific environment

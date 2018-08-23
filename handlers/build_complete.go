@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/ernestio/service-store/models"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 // BuildComplete : sets a builds status to complete
